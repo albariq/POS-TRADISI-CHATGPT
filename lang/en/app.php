@@ -1,0 +1,28 @@
+<?php
+
+return [
+    'app_name' => 'POS Tradisi',
+    'login' => 'Login',
+    'logout' => 'Logout',
+    'email' => 'Email',
+    'password' => 'Password',
+    'select_outlet' => 'Select Outlet',
+    'dashboard' => 'Dashboard',
+    'pos' => 'POS',
+    'products' => 'Products',
+    'inventory' => 'Inventory',
+    'customers' => 'Customers',
+    'reports' => 'Reports',
+    'shifts' => 'Shifts',
+    'open_shift' => 'Open Shift',
+    'close_shift' => 'Close Shift',
+    'submit' => 'Save',
+    'search' => 'Search',
+    'cart' => 'Cart',
+    'checkout' => 'Checkout',
+    'total' => 'Total',
+    'discount' => 'Discount',
+    'tax' => 'Tax',
+    'service' => 'Service Charge',
+    'grand_total' => 'Grand Total',
+];

@@ -1,0 +1,28 @@
+<?php
+
+return [
+    'app_name' => 'POS Tradisi',
+    'login' => 'Masuk',
+    'logout' => 'Keluar',
+    'email' => 'Email',
+    'password' => 'Kata Sandi',
+    'select_outlet' => 'Pilih Outlet',
+    'dashboard' => 'Dashboard',
+    'pos' => 'Kasir',
+    'products' => 'Produk',
+    'inventory' => 'Stok',
+    'customers' => 'Pelanggan',
+    'reports' => 'Laporan',
+    'shifts' => 'Shift',
+    'open_shift' => 'Buka Shift',
+    'close_shift' => 'Tutup Shift',
+    'submit' => 'Simpan',
+    'search' => 'Cari',
+    'cart' => 'Keranjang',
+    'checkout' => 'Bayar',
+    'total' => 'Total',
+    'discount' => 'Diskon',
+    'tax' => 'Pajak',
+    'service' => 'Service Charge',
+    'grand_total' => 'Grand Total',
+];
