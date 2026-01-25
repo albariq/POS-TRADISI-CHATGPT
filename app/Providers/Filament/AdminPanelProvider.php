@@ -11,8 +11,12 @@ use Filament\Pages\Dashboard;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
+use App\Filament\Widgets\DashboardStats;
+use App\Filament\Widgets\LowStock;
+use App\Filament\Widgets\RecentPurchases;
+use App\Filament\Widgets\RecentSales;
+use App\Filament\Widgets\RecentStockMovements;
 use Filament\Widgets\AccountWidget;
-use Filament\Widgets\FilamentInfoWidget;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
@@ -40,7 +44,11 @@ class AdminPanelProvider extends PanelProvider
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
             ->widgets([
                 AccountWidget::class,
-                FilamentInfoWidget::class,
+                DashboardStats::class,
+                RecentSales::class,
+                RecentPurchases::class,
+                LowStock::class,
+                RecentStockMovements::class,
             ])
             ->navigationItems([
                 NavigationItem::make('POS')
