@@ -43,27 +43,9 @@ class AdminPanelProvider extends PanelProvider
                 FilamentInfoWidget::class,
             ])
             ->navigationItems([
-                NavigationItem::make('Dashboard')
-                    ->url(fn () => route('dashboard'))
-                    ->icon('heroicon-o-home'),
                 NavigationItem::make('POS')
                     ->url(fn () => route('pos.index'))
                     ->icon('heroicon-o-calculator'),
-                NavigationItem::make('Products')
-                    ->url(fn () => route('products.index'))
-                    ->icon('heroicon-o-archive-box'),
-                NavigationItem::make('Inventory')
-                    ->url(fn () => route('inventory.index'))
-                    ->icon('heroicon-o-clipboard-document-list'),
-                NavigationItem::make('Customers')
-                    ->url(fn () => route('customers.index'))
-                    ->icon('heroicon-o-user-group'),
-                NavigationItem::make('Reports')
-                    ->url(fn () => route('reports.index'))
-                    ->icon('heroicon-o-chart-bar'),
-                NavigationItem::make('Shifts')
-                    ->url(fn () => route('shifts.index'))
-                    ->icon('heroicon-o-clock'),
             ])
             ->middleware([
                 EncryptCookies::class,
