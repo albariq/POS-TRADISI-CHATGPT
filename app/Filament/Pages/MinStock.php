@@ -29,7 +29,7 @@ class MinStock extends Page implements HasForms
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-minus-circle';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Inventory';
+    protected static string|UnitEnum|null $navigationGroup = 'Inventori';
 
     protected static ?string $navigationLabel = 'Stok Minimum';
 

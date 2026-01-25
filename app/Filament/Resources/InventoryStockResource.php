@@ -22,6 +22,8 @@ class InventoryStockResource extends Resource
 
     protected static string|UnitEnum|null $navigationGroup = 'Inventori';
 
+    protected static ?string $navigationLabel = 'Stok';
+
     public static function form(Schema $schema): Schema
     {
         return $schema

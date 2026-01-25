@@ -31,7 +31,7 @@ class StockAdjustment extends Page implements HasForms
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-adjustments-horizontal';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Inventory';
+    protected static string|UnitEnum|null $navigationGroup = 'Inventori';
 
     protected static ?string $navigationLabel = 'Penyesuaian Stok';
 
