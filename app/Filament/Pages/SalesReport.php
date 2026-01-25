@@ -20,9 +20,9 @@ class SalesReport extends Page implements HasTable
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-chart-bar';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Reports';
+    protected static string|UnitEnum|null $navigationGroup = 'Laporan';
 
-    protected static ?string $navigationLabel = 'Sales Report';
+    protected static ?string $navigationLabel = 'Laporan Penjualan';
 
     public function getView(): string
     {
@@ -39,20 +39,24 @@ class SalesReport extends Page implements HasTable
             )
             ->columns([
                 Tables\Columns\TextColumn::make('receipt_number')
+                    ->label('No. Struk')
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('customer.name')
-                    ->label('Customer')
+                    ->label('Pelanggan')
                     ->toggleable(),
                 Tables\Columns\TextColumn::make('subtotal')
                     ->money('IDR', true)
                     ->sortable(),
                 Tables\Columns\TextColumn::make('tax_total')
+                    ->label('Pajak')
                     ->money('IDR', true),
                 Tables\Columns\TextColumn::make('grand_total')
+                    ->label('Total')
                     ->money('IDR', true)
                     ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')
+                    ->label('Tanggal')
                     ->dateTime('d-m-Y H:i')
                     ->sortable(),
             ])

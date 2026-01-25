@@ -21,7 +21,7 @@ class TagResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-hashtag';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Catalog';
+    protected static string|UnitEnum|null $navigationGroup = 'Katalog';
 
     public static function form(Schema $schema): Schema
     {

@@ -21,39 +21,39 @@ class PurchaseResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-arrow-down-circle';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Purchasing';
+    protected static string|UnitEnum|null $navigationGroup = 'Pembelian';
 
-    protected static ?string $navigationLabel = 'Purchases';
+    protected static ?string $navigationLabel = 'Pembelian';
 
     public static function form(Schema $schema): Schema
     {
         return $schema
             ->schema([
-                Section::make('Purchase Info')
+                Section::make('Informasi Pembelian')
                     ->schema([
                         Forms\Components\TextInput::make('invoice_number')
-                            ->label('Invoice Number')
+                            ->label('Nomor Invoice')
                             ->maxLength(100)
                             ->nullable(),
                         Forms\Components\TextInput::make('supplier_name')
-                            ->label('Supplier')
+                            ->label('Pemasok')
                             ->maxLength(255)
                             ->nullable(),
                         Forms\Components\DateTimePicker::make('purchased_at')
-                            ->label('Purchased At')
+                            ->label('Tanggal Pembelian')
                             ->nullable(),
                         Forms\Components\Textarea::make('notes')
                             ->rows(2)
                             ->columnSpanFull(),
                     ])
                     ->columns(2),
-                Section::make('Items')
+                Section::make('Item')
                     ->schema([
                         Forms\Components\Repeater::make('items')
                             ->relationship()
                             ->schema([
                                 Forms\Components\Select::make('product_id')
-                                    ->label('Product')
+                                    ->label('Produk')
                                     ->options(fn (): array => \App\Models\Product::where('outlet_id', OutletContext::id())
                                         ->orderBy('name')
                                         ->pluck('name', 'id')
@@ -61,7 +61,7 @@ class PurchaseResource extends Resource
                                     ->searchable()
                                     ->required(),
                                 Forms\Components\TextInput::make('qty_grams')
-                                    ->label('Qty (grams)')
+                                    ->label('Qty (gram)')
                                     ->numeric()
                                     ->required(),
                                 Forms\Components\TextInput::make('unit_cost')
@@ -84,11 +84,11 @@ class PurchaseResource extends Resource
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('supplier_name')
-                    ->label('Supplier')
+                    ->label('Pemasok')
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('items_summary')
-                    ->label('Items')
+                    ->label('Item')
                     ->state(fn (Purchase $record): array => $record->items
                         ->map(fn ($item) => sprintf('%s (%s g)', $item->product?->name ?? '-', number_format($item->qty_grams ?? 0, 0, ',', '.')))
                         ->all())
@@ -102,7 +102,7 @@ class PurchaseResource extends Resource
                     ->money('IDR', true)
                     ->sortable(),
                 Tables\Columns\TextColumn::make('creator.name')
-                    ->label('Created By')
+                    ->label('Dibuat Oleh')
                     ->toggleable(),
             ])
             ->actions([])

@@ -18,9 +18,9 @@ class InventoryReport extends Page implements HasTable
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-clipboard-document-list';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Reports';
+    protected static string|UnitEnum|null $navigationGroup = 'Laporan';
 
-    protected static ?string $navigationLabel = 'Inventory Report';
+    protected static ?string $navigationLabel = 'Laporan Stok';
 
     public function getView(): string
     {
@@ -37,11 +37,11 @@ class InventoryReport extends Page implements HasTable
             )
             ->columns([
                 Tables\Columns\TextColumn::make('product.name')
-                    ->label('Product')
+                    ->label('Produk')
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('variant.name')
-                    ->label('Variant')
+                    ->label('Varian')
                     ->toggleable(),
                 Tables\Columns\TextColumn::make('qty_grams')
                     ->label('Qty (g)')

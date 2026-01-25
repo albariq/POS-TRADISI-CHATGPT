@@ -14,7 +14,7 @@ class ListPurchases extends ListRecords
     {
         return [
             Action::make('create')
-                ->label('New Purchase')
+                ->label('Pembelian Baru')
                 ->url(PurchaseResource::getUrl('create')),
         ];
     }

@@ -31,7 +31,7 @@ class MinStock extends Page implements HasForms
 
     protected static string|UnitEnum|null $navigationGroup = 'Inventory';
 
-    protected static ?string $navigationLabel = 'Min Stock';
+    protected static ?string $navigationLabel = 'Stok Minimum';
 
     public function mount(): void
     {
@@ -43,10 +43,10 @@ class MinStock extends Page implements HasForms
         return $schema
             ->statePath('data')
             ->components([
-                Section::make('Set Minimum Stock')
+                Section::make('Atur Stok Minimum')
                     ->schema([
                         Select::make('product_id')
-                            ->label('Product')
+                            ->label('Produk')
                             ->options(fn (): array => Product::where('outlet_id', OutletContext::id())
                                 ->orderBy('name')
                                 ->pluck('name', 'id')
@@ -55,7 +55,7 @@ class MinStock extends Page implements HasForms
                             ->live()
                             ->required(),
                         TextInput::make('min_qty_grams')
-                            ->label('Minimum (grams)')
+                            ->label('Minimum (gram)')
                             ->numeric()
                             ->required(),
                     ])
@@ -77,7 +77,7 @@ class MinStock extends Page implements HasForms
         ]);
 
         Notification::make()
-            ->title('Minimum stock updated')
+            ->title('Stok minimum diperbarui')
             ->success()
             ->send();
 
@@ -106,7 +106,7 @@ class MinStock extends Page implements HasForms
     {
         return [
             Action::make('save')
-                ->label('Save')
+                ->label('Simpan')
                 ->submit('submit'),
         ];
     }

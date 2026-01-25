@@ -18,35 +18,38 @@ class StockMovementResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-clock';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Inventory';
+    protected static string|UnitEnum|null $navigationGroup = 'Inventori';
 
-    protected static ?string $navigationLabel = 'Stock Movements';
+    protected static ?string $navigationLabel = 'Pergerakan Stok';
 
     public static function table(Table $table): Table
     {
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('created_at')
+                    ->label('Waktu')
                     ->dateTime('d-m-Y H:i')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('type')
                     ->badge()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('product.name')
+                    ->label('Produk')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('variant.name')
-                    ->label('Variant')
+                    ->label('Varian')
                     ->toggleable(),
                 Tables\Columns\TextColumn::make('qty_grams')
                     ->label('Qty (g)')
                     ->numeric(),
                 Tables\Columns\TextColumn::make('before_qty_grams')
-                    ->label('Before')
+                    ->label('Sebelum')
                     ->numeric(),
                 Tables\Columns\TextColumn::make('after_qty_grams')
-                    ->label('After')
+                    ->label('Sesudah')
                     ->numeric(),
                 Tables\Columns\TextColumn::make('reason')
+                    ->label('Alasan')
                     ->toggleable(),
                 Tables\Columns\TextColumn::make('creator.name')
                     ->label('User')

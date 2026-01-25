@@ -33,7 +33,7 @@ class StockAdjustment extends Page implements HasForms
 
     protected static string|UnitEnum|null $navigationGroup = 'Inventory';
 
-    protected static ?string $navigationLabel = 'Stock Adjustment';
+    protected static ?string $navigationLabel = 'Penyesuaian Stok';
 
     public function mount(): void
     {
@@ -45,10 +45,10 @@ class StockAdjustment extends Page implements HasForms
         return $schema
             ->statePath('data')
             ->components([
-                Section::make('Adjust Stock')
+                Section::make('Penyesuaian Stok')
                     ->schema([
                         Select::make('product_id')
-                            ->label('Product')
+                            ->label('Produk')
                             ->options(fn (): array => Product::where('outlet_id', OutletContext::id())
                                 ->orderBy('name')
                                 ->pluck('name', 'id')
@@ -66,19 +66,19 @@ class StockAdjustment extends Page implements HasForms
                             ->nullable()
                             ->disabled(fn (Get $get): bool => blank($get('product_id'))),
                         Select::make('type')
-                            ->label('Type')
+                            ->label('Tipe')
                             ->options([
-                                'in' => 'Stock In',
-                                'out' => 'Stock Out',
-                                'adjust' => 'Adjustment',
+                                'in' => 'Stok Masuk',
+                                'out' => 'Stok Keluar',
+                                'adjust' => 'Penyesuaian',
                             ])
                             ->required(),
                         TextInput::make('qty_grams')
-                            ->label('Qty (grams)')
+                            ->label('Qty (gram)')
                             ->numeric()
                             ->required(),
                         TextInput::make('reason')
-                            ->label('Reason / Reference')
+                            ->label('Alasan / Referensi')
                             ->maxLength(255)
                             ->nullable(),
                     ])
@@ -112,7 +112,7 @@ class StockAdjustment extends Page implements HasForms
         );
 
         Notification::make()
-            ->title('Stock updated')
+            ->title('Stok berhasil diperbarui')
             ->success()
             ->send();
 
@@ -141,7 +141,7 @@ class StockAdjustment extends Page implements HasForms
     {
         return [
             Action::make('apply')
-                ->label('Apply')
+                ->label('Terapkan')
                 ->submit('submit'),
         ];
     }

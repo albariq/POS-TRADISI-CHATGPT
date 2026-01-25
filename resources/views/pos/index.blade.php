@@ -5,11 +5,11 @@
     <div class="lg:col-span-8">
         <div class="mb-4 flex flex-col gap-3">
             <div class="flex items-center justify-between">
-                <h1 class="text-lg font-semibold">POS</h1>
+                <h1 class="text-lg font-semibold">Kasir</h1>
                 <span class="text-xs text-slate-500">{{ $products->count() }} items</span>
             </div>
             <form method="GET">
-                <input name="q" value="{{ request('q') }}" class="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm" placeholder="{{ __('app.search') }} product / SKU / barcode">
+                <input name="q" value="{{ request('q') }}" class="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm" placeholder="Cari produk / SKU / barcode">
             </form>
         </div>
 
@@ -25,7 +25,7 @@
                         <button class="w-full text-sm bg-slate-900 text-white rounded-lg py-2">Add</button>
                     </form>
                     @if ($product->variants->count())
-                        <div class="mt-3 text-xs text-slate-500">Variants</div>
+                        <div class="mt-3 text-xs text-slate-500">Varian</div>
                         <div class="space-y-2 mt-2">
                             @foreach ($product->variants as $variant)
                                 <form method="POST" action="{{ route('pos.add') }}">
@@ -77,7 +77,7 @@
                         </form>
                     </div>
                 @empty
-                    <div class="text-sm text-slate-500">Cart empty</div>
+                    <div class="text-sm text-slate-500">Keranjang kosong</div>
                 @endforelse
             </div>
 
@@ -91,37 +91,37 @@
 
             <form method="POST" action="{{ route('pos.discount') }}" class="mt-3 grid grid-cols-3 gap-2">
                 @csrf
-                <input type="number" step="0.01" name="transaction_discount" class="col-span-2 border border-slate-300 rounded-lg px-2.5 py-2 text-sm" value="{{ $cart['transaction_discount'] }}" placeholder="Transaction discount">
-                <button class="text-xs bg-slate-200 rounded-lg px-2">Apply</button>
+                <input type="number" step="0.01" name="transaction_discount" class="col-span-2 border border-slate-300 rounded-lg px-2.5 py-2 text-sm" value="{{ $cart['transaction_discount'] }}" placeholder="Diskon transaksi">
+                <button class="text-xs bg-slate-200 rounded-lg px-2">Terapkan</button>
             </form>
 
             <form method="POST" action="{{ route('pos.coupon') }}" class="mt-2 grid grid-cols-3 gap-2">
                 @csrf
-                <input type="text" name="code" class="col-span-2 border border-slate-300 rounded-lg px-2.5 py-2 text-sm" placeholder="Coupon code">
-                <button class="text-xs bg-slate-200 rounded-lg px-2">Apply</button>
+                <input type="text" name="code" class="col-span-2 border border-slate-300 rounded-lg px-2.5 py-2 text-sm" placeholder="Kode kupon">
+                <button class="text-xs bg-slate-200 rounded-lg px-2">Terapkan</button>
             </form>
 
             <form method="POST" action="{{ route('pos.hold') }}" class="mt-3">
                 @csrf
-                <button class="w-full text-xs border border-slate-300 rounded-lg py-2">Hold / Park</button>
+                <button class="w-full text-xs border border-slate-300 rounded-lg py-2">Tahan / Parkir</button>
             </form>
 
             <form method="POST" action="{{ route('pos.checkout') }}" class="mt-3 space-y-2">
                 @csrf
                 <select name="payment_method" class="w-full border border-slate-300 rounded-lg px-2.5 py-2 text-sm">
-                    <option value="" disabled selected>Select payment method</option>
-                    <option value="cash">Cash</option>
-                    <option value="card">Debit/Kartu</option>
-                    <option value="qris">QRIS</option>
-                    <option value="ewallet">E-Wallet</option>
-                    <option value="transfer">Transfer</option>
-                </select>
-                <input type="number" name="payment_amount" class="w-full border border-slate-300 rounded-lg px-2.5 py-2 text-sm" placeholder="Payment amount">
-                <input type="number" name="cash_received" class="w-full border border-slate-300 rounded-lg px-2.5 py-2 text-sm" placeholder="Cash received (optional)">
-                <input type="text" name="payment_reference" class="w-full border border-slate-300 rounded-lg px-2.5 py-2 text-sm" placeholder="Reference (optional)">
+                        <option value="" disabled selected>Pilih metode pembayaran</option>
+                        <option value="cash">Cash</option>
+                        <option value="card">Debit/Kartu</option>
+                        <option value="qris">QRIS</option>
+                        <option value="ewallet">E-Wallet</option>
+                        <option value="transfer">Transfer</option>
+                    </select>
+                <input type="number" name="payment_amount" class="w-full border border-slate-300 rounded-lg px-2.5 py-2 text-sm" placeholder="Jumlah pembayaran">
+                <input type="number" name="cash_received" class="w-full border border-slate-300 rounded-lg px-2.5 py-2 text-sm" placeholder="Uang diterima (opsional)">
+                <input type="text" name="payment_reference" class="w-full border border-slate-300 rounded-lg px-2.5 py-2 text-sm" placeholder="Referensi (opsional)">
                 <select name="customer_id" class="w-full border border-slate-300 rounded-lg px-2.5 py-2 text-sm">
-                    <option value="" selected>Select customer (optional)</option>
-                    <option value="">Walk-in</option>
+                    <option value="" selected>Pilih pelanggan (opsional)</option>
+                    <option value="">Umum</option>
                     @foreach ($customers as $customer)
                         <option value="{{ $customer->id }}">{{ $customer->name }}</option>
                     @endforeach

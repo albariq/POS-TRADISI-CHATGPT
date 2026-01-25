@@ -21,13 +21,13 @@ class ProductResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-archive-box';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Catalog';
+    protected static string|UnitEnum|null $navigationGroup = 'Katalog';
 
     public static function form(Schema $schema): Schema
     {
         return $schema
             ->schema([
-                Section::make('Product')
+                Section::make('Produk')
                     ->schema([
                         Forms\Components\TextInput::make('sku')
                             ->required()
@@ -61,7 +61,7 @@ class ProductResource extends Resource
                             ->default(true),
                     ])
                     ->columns(2),
-                Section::make('Variants')
+                Section::make('Varian')
                     ->schema([
                         Forms\Components\Repeater::make('variants')
                             ->relationship()
@@ -100,7 +100,7 @@ class ProductResource extends Resource
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('category.name')
-                    ->label('Category')
+                    ->label('Kategori')
                     ->toggleable(),
                 Tables\Columns\TextColumn::make('base_price')
                     ->money('IDR', true)

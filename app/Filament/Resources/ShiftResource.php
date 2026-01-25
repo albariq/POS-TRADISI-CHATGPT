@@ -18,29 +18,33 @@ class ShiftResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-clock';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Operations';
+    protected static string|UnitEnum|null $navigationGroup = 'Operasional';
 
     public static function table(Table $table): Table
     {
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('opened_at')
+                    ->label('Dibuka')
                     ->dateTime('d-m-Y H:i')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('closed_at')
+                    ->label('Ditutup')
                     ->dateTime('d-m-Y H:i')
                     ->sortable()
                     ->toggleable(),
                 Tables\Columns\TextColumn::make('opener.name')
-                    ->label('Opened By')
+                    ->label('Dibuka Oleh')
                     ->toggleable(),
                 Tables\Columns\TextColumn::make('status')
                     ->badge()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('opening_balance')
+                    ->label('Kas Awal')
                     ->money('IDR', true)
                     ->toggleable(),
                 Tables\Columns\TextColumn::make('closing_balance_actual')
+                    ->label('Kas Akhir')
                     ->money('IDR', true)
                     ->toggleable(),
             ])

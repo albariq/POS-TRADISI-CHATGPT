@@ -29,7 +29,7 @@ class OutletSettings extends Page implements HasForms
 
     protected static string|UnitEnum|null $navigationGroup = 'Settings';
 
-    protected static ?string $navigationLabel = 'Outlet Settings';
+    protected static ?string $navigationLabel = 'Pengaturan Outlet';
 
     public function mount(): void
     {
@@ -47,10 +47,10 @@ class OutletSettings extends Page implements HasForms
         return $schema
             ->statePath('data')
             ->components([
-                Section::make('Tax & Service Charge')
+                Section::make('Pajak & Service Charge')
                     ->schema([
                         TextInput::make('tax_rate')
-                            ->label('Tax Rate (%)')
+                            ->label('Pajak (%)')
                             ->numeric()
                             ->required(),
                         TextInput::make('service_charge_rate')
@@ -58,7 +58,7 @@ class OutletSettings extends Page implements HasForms
                             ->numeric()
                             ->required(),
                         Select::make('rounding_unit')
-                            ->label('Rounding Unit')
+                            ->label('Satuan Pembulatan')
                             ->options([
                                 1 => '1',
                                 10 => '10',
@@ -78,7 +78,7 @@ class OutletSettings extends Page implements HasForms
 
         if (! $outlet) {
             Notification::make()
-                ->title('Outlet not found')
+                ->title('Outlet tidak ditemukan')
                 ->danger()
                 ->send();
             return;
@@ -91,7 +91,7 @@ class OutletSettings extends Page implements HasForms
         ]);
 
         Notification::make()
-            ->title('Settings saved')
+            ->title('Pengaturan disimpan')
             ->success()
             ->send();
     }
@@ -118,7 +118,7 @@ class OutletSettings extends Page implements HasForms
     {
         return [
             Action::make('save')
-                ->label('Save')
+                ->label('Simpan')
                 ->submit('submit'),
         ];
     }

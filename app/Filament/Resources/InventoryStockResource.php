@@ -20,7 +20,7 @@ class InventoryStockResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-clipboard-document-list';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Inventory';
+    protected static string|UnitEnum|null $navigationGroup = 'Inventori';
 
     public static function form(Schema $schema): Schema
     {
@@ -33,7 +33,7 @@ class InventoryStockResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('product.name')
-                    ->label('Product')
+                    ->label('Produk')
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('qty_grams')
