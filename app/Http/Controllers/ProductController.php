@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Category;
+use App\Models\InventoryStock;
 use App\Models\Product;
 use App\Models\ProductVariant;
+use App\Models\StockMovement;
 use App\Models\Tag;
 use App\Support\AuditLogger;
 use App\Support\OutletContext;
@@ -57,6 +59,7 @@ class ProductController extends Controller
             'variants.*.name' => ['nullable', 'string'],
             'variants.*.sku' => ['nullable', 'string'],
             'variants.*.price_override' => ['nullable', 'numeric'],
+            'variants.*.cost_price' => ['nullable', 'numeric'],
             'variants.*.grams_per_unit' => ['nullable', 'numeric', 'min:0'],
         ]);
 
@@ -87,6 +90,7 @@ class ProductController extends Controller
                     'name' => $variantData['name'],
                     'sku' => $variantData['sku'] ?? null,
                     'price_override' => $variantData['price_override'] ?? null,
+                    'cost_price' => $variantData['cost_price'] ?? null,
                     'grams_per_unit' => $variantData['grams_per_unit'] ?? 0,
                 ]);
             }
@@ -106,6 +110,28 @@ class ProductController extends Controller
         $tags = Tag::where('outlet_id', $product->outlet_id)->orderBy('name')->get();
 
         return view('products.edit', compact('product', 'categories', 'tags'));
+    }
+
+    public function show(Product $product)
+    {
+        $this->authorizeOutlet($product->outlet_id);
+
+        $product->load('category', 'tags', 'variants');
+
+        $stocks = InventoryStock::where('outlet_id', $product->outlet_id)
+            ->where('product_id', $product->id)
+            ->with('variant')
+            ->orderByRaw('product_variant_id is null desc')
+            ->orderBy('product_variant_id')
+            ->get();
+
+        $movements = StockMovement::where('outlet_id', $product->outlet_id)
+            ->where('product_id', $product->id)
+            ->with('variant', 'creator')
+            ->orderByDesc('created_at')
+            ->paginate(20);
+
+        return view('products.show', compact('product', 'stocks', 'movements'));
     }
 
     public function update(Request $request, Product $product)
@@ -129,6 +155,7 @@ class ProductController extends Controller
             'variants.*.name' => ['nullable', 'string'],
             'variants.*.sku' => ['nullable', 'string'],
             'variants.*.price_override' => ['nullable', 'numeric'],
+            'variants.*.cost_price' => ['nullable', 'numeric'],
             'variants.*.grams_per_unit' => ['nullable', 'numeric', 'min:0'],
         ]);
 
@@ -163,6 +190,7 @@ class ProductController extends Controller
                         'name' => $variantData['name'],
                         'sku' => $variantData['sku'] ?? null,
                         'price_override' => $variantData['price_override'] ?? null,
+                        'cost_price' => $variantData['cost_price'] ?? null,
                         'grams_per_unit' => $variantData['grams_per_unit'] ?? 0,
                     ]);
                     $existingIds[] = $variant->id;
@@ -172,6 +200,7 @@ class ProductController extends Controller
                         'name' => $variantData['name'],
                         'sku' => $variantData['sku'] ?? null,
                         'price_override' => $variantData['price_override'] ?? null,
+                        'cost_price' => $variantData['cost_price'] ?? null,
                         'grams_per_unit' => $variantData['grams_per_unit'] ?? 0,
                     ]);
                     $existingIds[] = $newVariant->id;

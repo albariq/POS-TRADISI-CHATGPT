@@ -35,10 +35,11 @@
         <div class="font-semibold mb-2">Variants (optional)</div>
         <div class="space-y-2">
             @for ($i = 0; $i < 3; $i++)
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-2">
+                <div class="grid grid-cols-1 md:grid-cols-5 gap-2">
                     <input name="variants[{{ $i }}][name]" class="border border-slate-300 rounded px-3 py-2" placeholder="Variant name">
                     <input name="variants[{{ $i }}][sku]" class="border border-slate-300 rounded px-3 py-2" placeholder="Variant SKU">
                     <input name="variants[{{ $i }}][price_override]" class="border border-slate-300 rounded px-3 py-2" placeholder="Price override">
+                    <input name="variants[{{ $i }}][cost_price]" class="border border-slate-300 rounded px-3 py-2" placeholder="Cost price">
                     <input name="variants[{{ $i }}][grams_per_unit]" class="border border-slate-300 rounded px-3 py-2" placeholder="Grams per pcs">
                 </div>
             @endfor

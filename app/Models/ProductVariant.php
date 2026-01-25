@@ -15,6 +15,7 @@ class ProductVariant extends Model
         'name',
         'attributes',
         'price_override',
+        'cost_price',
         'barcode',
         'grams_per_unit',
         'is_active',
@@ -23,6 +24,7 @@ class ProductVariant extends Model
     protected $casts = [
         'attributes' => 'array',
         'price_override' => 'decimal:2',
+        'cost_price' => 'decimal:2',
         'grams_per_unit' => 'decimal:2',
         'is_active' => 'boolean',
     ];

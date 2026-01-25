@@ -40,7 +40,7 @@ Route::middleware('auth')->group(function () {
     });
 
     Route::middleware('role:OWNER|ADMIN|MANAGER')->group(function () {
-        Route::resource('products', ProductController::class)->except(['show', 'destroy']);
+        Route::resource('products', ProductController::class)->except(['destroy']);
         Route::resource('categories', CategoryController::class)->only(['index', 'store', 'update']);
         Route::resource('tags', TagController::class)->only(['index', 'store', 'update']);
 

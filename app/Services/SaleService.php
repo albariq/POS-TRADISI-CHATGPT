@@ -98,7 +98,7 @@ class SaleService
                 if ($status === 'paid') {
                     $this->stockService->adjust(
                         $item['product_id'],
-                        $item['product_variant_id'] ?? null,
+                        null,
                         -1 * $gramsTotal,
                         'out',
                         'sale',

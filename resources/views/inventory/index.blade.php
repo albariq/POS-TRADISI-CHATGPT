@@ -37,7 +37,15 @@
         <tbody>
             @foreach ($stocks as $stock)
                 <tr class="border-t">
-                    <td class="py-2 px-3">{{ $stock->product?->name }}</td>
+                    <td class="py-2 px-3">
+                        @if ($stock->product)
+                            <a href="{{ route('products.show', $stock->product) }}" class="text-blue-600">
+                                {{ $stock->product->name }}
+                            </a>
+                        @else
+                            -
+                        @endif
+                    </td>
                     <td>{{ $stock->variant?->name }}</td>
                     <td>{{ $stock->qty_grams }}</td>
                     <td>{{ $stock->min_qty_grams }}</td>

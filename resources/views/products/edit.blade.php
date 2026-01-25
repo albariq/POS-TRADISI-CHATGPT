@@ -36,20 +36,22 @@
         <div class="font-semibold mb-2">Variants</div>
         <div class="space-y-2">
             @foreach ($product->variants as $index => $variant)
-                <div class="grid grid-cols-1 md:grid-cols-5 gap-2">
+                <div class="grid grid-cols-1 md:grid-cols-6 gap-2">
                     <input type="hidden" name="variants[{{ $index }}][id]" value="{{ $variant->id }}">
                     <input name="variants[{{ $index }}][name]" class="border border-slate-300 rounded px-3 py-2" value="{{ $variant->name }}" placeholder="Variant name">
                     <input name="variants[{{ $index }}][sku]" class="border border-slate-300 rounded px-3 py-2" value="{{ $variant->sku }}" placeholder="Variant SKU">
                     <input name="variants[{{ $index }}][price_override]" class="border border-slate-300 rounded px-3 py-2" value="{{ $variant->price_override }}" placeholder="Price override">
+                    <input name="variants[{{ $index }}][cost_price]" class="border border-slate-300 rounded px-3 py-2" value="{{ $variant->cost_price }}" placeholder="Cost price">
                     <input name="variants[{{ $index }}][grams_per_unit]" class="border border-slate-300 rounded px-3 py-2" value="{{ $variant->grams_per_unit }}" placeholder="Grams per pcs">
                 </div>
             @endforeach
             @for ($i = 0; $i < 2; $i++)
-                <div class="grid grid-cols-1 md:grid-cols-5 gap-2">
+                <div class="grid grid-cols-1 md:grid-cols-6 gap-2">
                     <input type="hidden" name="variants[new{{ $i }}][id]" value="">
                     <input name="variants[new{{ $i }}][name]" class="border border-slate-300 rounded px-3 py-2" placeholder="Variant name">
                     <input name="variants[new{{ $i }}][sku]" class="border border-slate-300 rounded px-3 py-2" placeholder="Variant SKU">
                     <input name="variants[new{{ $i }}][price_override]" class="border border-slate-300 rounded px-3 py-2" placeholder="Price override">
+                    <input name="variants[new{{ $i }}][cost_price]" class="border border-slate-300 rounded px-3 py-2" placeholder="Cost price">
                     <input name="variants[new{{ $i }}][grams_per_unit]" class="border border-slate-300 rounded px-3 py-2" placeholder="Grams per pcs">
                 </div>
             @endfor
