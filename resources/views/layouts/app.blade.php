@@ -18,13 +18,18 @@
                 <div class="font-semibold">{{ __('app.app_name') }}</div>
                 @auth
                     <div class="flex gap-3 items-center text-sm">
-                        <a href="{{ route('dashboard') }}" class="hover:text-slate-900 text-slate-600">{{ __('app.dashboard') }}</a>
-                        <a href="{{ route('pos.index') }}" class="hover:text-slate-900 text-slate-600">{{ __('app.pos') }}</a>
-                        <a href="{{ route('products.index') }}" class="hover:text-slate-900 text-slate-600">{{ __('app.products') }}</a>
-                        <a href="{{ route('inventory.index') }}" class="hover:text-slate-900 text-slate-600">{{ __('app.inventory') }}</a>
-                        <a href="{{ route('customers.index') }}" class="hover:text-slate-900 text-slate-600">{{ __('app.customers') }}</a>
-                        <a href="{{ route('reports.index') }}" class="hover:text-slate-900 text-slate-600">{{ __('app.reports') }}</a>
-                        <a href="{{ route('shifts.index') }}" class="hover:text-slate-900 text-slate-600">{{ __('app.shifts') }}</a>
+                        @role('CASHIER')
+                            <a href="{{ route('pos.index') }}" class="hover:text-slate-900 text-slate-600">{{ __('app.pos') }}</a>
+                            <a href="{{ route('shifts.index') }}" class="hover:text-slate-900 text-slate-600">{{ __('app.shifts') }}</a>
+                        @else
+                            <a href="{{ route('dashboard') }}" class="hover:text-slate-900 text-slate-600">{{ __('app.dashboard') }}</a>
+                            <a href="{{ route('pos.index') }}" class="hover:text-slate-900 text-slate-600">{{ __('app.pos') }}</a>
+                            <a href="{{ route('products.index') }}" class="hover:text-slate-900 text-slate-600">{{ __('app.products') }}</a>
+                            <a href="{{ route('inventory.index') }}" class="hover:text-slate-900 text-slate-600">{{ __('app.inventory') }}</a>
+                            <a href="{{ route('customers.index') }}" class="hover:text-slate-900 text-slate-600">{{ __('app.customers') }}</a>
+                            <a href="{{ route('reports.index') }}" class="hover:text-slate-900 text-slate-600">{{ __('app.reports') }}</a>
+                            <a href="{{ route('shifts.index') }}" class="hover:text-slate-900 text-slate-600">{{ __('app.shifts') }}</a>
+                        @endrole
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
                             <button class="text-rose-600 hover:text-rose-700">{{ __('app.logout') }}</button>
