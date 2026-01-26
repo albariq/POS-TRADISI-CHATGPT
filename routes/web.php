@@ -62,6 +62,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/reports/sales/pdf', [ReportController::class, 'exportSalesPdf'])->name('reports.sales.pdf');
         Route::get('/reports/inventory/pdf', [ReportController::class, 'exportInventoryPdf'])->name('reports.inventory.pdf');
     });
+
 });
 
 Route::get('/receipt/{token}', [ReceiptController::class, 'public'])->name('receipts.public');
