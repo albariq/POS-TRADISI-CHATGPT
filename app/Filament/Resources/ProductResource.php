@@ -37,19 +37,22 @@ class ProductResource extends Resource
                         Forms\Components\Select::make('outlet_ids')
                             ->label('Outlet')
                             ->options(fn (): array => static::getAllowedOutletOptions())
-                            ->default(function (?Product $record): array {
-                                if ($record) {
-                                    return $record->outlets()->pluck('outlets.id')->all();
-                                }
-
-                                return OutletContext::id() ? [OutletContext::id()] : [];
-                            })
                             ->multiple()
                             ->required()
                             ->searchable()
                             ->preload()
                             ->live()
-                            ->helperText('Pilih satu atau beberapa outlet untuk produk ini.'),
+                            ->helperText('Pilih satu atau beberapa outlet untuk produk ini.')
+                            ->afterStateHydrated(function (Forms\Components\Select $component): void {
+                                /** @var Product|null $record */
+                                $record = $component->getRecord();
+                                if ($record) {
+                                    $component->state($record->outlets()->pluck('outlets.id')->all());
+                                    return;
+                                }
+
+                                $component->state(OutletContext::id() ? [OutletContext::id()] : []);
+                            }),
                         Forms\Components\TextInput::make('sku')
                             ->required()
                             ->maxLength(100),
@@ -109,10 +112,14 @@ class ProductResource extends Resource
                                     ->pluck('name', 'id')
                                     ->all();
                             })
-                            ->default(fn (?Product $record): array => $record?->tags->pluck('id')->all() ?? [])
                             ->multiple()
                             ->preload()
-                            ->searchable(),
+                            ->searchable()
+                            ->afterStateHydrated(function (Forms\Components\Select $component): void {
+                                /** @var Product|null $record */
+                                $record = $component->getRecord();
+                                $component->state($record?->tags->pluck('id')->all() ?? []);
+                            }),
                         Forms\Components\Toggle::make('is_active')
                             ->default(true),
                     ])

@@ -77,6 +77,6 @@ If you are using Laragon, you can also run the app via Laragon's web server and 
 
 ## Commands Server
 
-- /usr/bin/php8.4 /usr/local/bin/composer install --no-dev
-- /usr/bin/php8.4 artisan migrate --force
-- /usr/bin/php8.4 artisan optimize:clear
+/usr/bin/php8.4 /usr/local/bin/composer install --no-dev --prefer-dist --optimize-autoloader
+/usr/bin/php8.4 artisan migrate --force
+/usr/bin/php8.4 artisan optimize:clear
