@@ -12,6 +12,7 @@
 </head>
 <body>
     <h2>Sales Report ({{ $from }} - {{ $to }})</h2>
+    <div style="margin-bottom: 8px; color: #64748b;">Outlet: {{ $selectedOutletLabel ?? 'Cabang Aktif' }}</div>
     <h3>Summary</h3>
     <table>
         <tbody>

@@ -3,16 +3,21 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\PurchaseResource\Pages;
+use App\Models\Outlet;
+use App\Models\Product;
 use App\Models\Purchase;
 use App\Support\OutletContext;
 use BackedEnum;
 use Filament\Forms;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Auth;
 use UnitEnum;
 
 class PurchaseResource extends Resource
@@ -31,6 +36,32 @@ class PurchaseResource extends Resource
             ->schema([
                 Section::make('Informasi Pembelian')
                     ->schema([
+                        Forms\Components\Select::make('outlet_id')
+                            ->label('Cabang Tujuan')
+                            ->options(function (): array {
+                                $user = Auth::user();
+                                $outlets = $user
+                                    ? $user->outlets()
+                                        ->where('outlets.is_active', true)
+                                        ->orderBy('outlets.name')
+                                        ->get(['outlets.id as id', 'outlets.code as code', 'outlets.name as name'])
+                                    : Outlet::where('is_active', true)
+                                        ->orderBy('name')
+                                        ->get(['id', 'code', 'name']);
+
+                                $options = [];
+                                foreach ($outlets as $outlet) {
+                                    $label = ($outlet->code ? $outlet->code.' - ' : '').$outlet->name;
+                                    $options[$outlet->id] = $label;
+                                }
+
+                                return $options;
+                            })
+                            ->default(OutletContext::id())
+                            ->searchable()
+                            ->required()
+                            ->live()
+                            ->afterStateUpdated(fn (Set $set) => $set('items', [])),
                         Forms\Components\TextInput::make('invoice_number')
                             ->label('Nomor Invoice')
                             ->maxLength(100)
@@ -54,11 +85,12 @@ class PurchaseResource extends Resource
                             ->schema([
                                 Forms\Components\Select::make('product_id')
                                     ->label('Produk')
-                                    ->options(fn (): array => \App\Models\Product::where('outlet_id', OutletContext::id())
+                                    ->options(fn (Get $get): array => Product::where('outlet_id', $get('../../outlet_id') ?? OutletContext::id())
                                         ->orderBy('name')
                                         ->pluck('name', 'id')
                                         ->toArray())
                                     ->searchable()
+                                    ->live()
                                     ->required(),
                                 Forms\Components\TextInput::make('qty_grams')
                                     ->label('Qty (gram)')
@@ -87,6 +119,9 @@ class PurchaseResource extends Resource
                     ->label('Pemasok')
                     ->searchable()
                     ->sortable(),
+                Tables\Columns\TextColumn::make('outlet.name')
+                    ->label('Cabang')
+                    ->toggleable(),
                 Tables\Columns\TextColumn::make('items_summary')
                     ->label('Item')
                     ->state(fn (Purchase $record): array => $record->items

@@ -12,7 +12,7 @@ use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 class SalesReportExport implements WithMultipleSheets
 {
     public function __construct(
-        protected int $outletId,
+        protected array $outletIds,
         protected string $from,
         protected string $to
     ) {
@@ -21,11 +21,11 @@ class SalesReportExport implements WithMultipleSheets
     public function sheets(): array
     {
         return [
-            new SalesSummarySheet($this->outletId, $this->from, $this->to),
-            new SalesTransactionsSheet($this->outletId, $this->from, $this->to),
-            new SalesByProductSheet($this->outletId, $this->from, $this->to),
-            new SalesByCategorySheet($this->outletId, $this->from, $this->to),
-            new SalesByCashierSheet($this->outletId, $this->from, $this->to),
+            new SalesSummarySheet($this->outletIds, $this->from, $this->to),
+            new SalesTransactionsSheet($this->outletIds, $this->from, $this->to),
+            new SalesByProductSheet($this->outletIds, $this->from, $this->to),
+            new SalesByCategorySheet($this->outletIds, $this->from, $this->to),
+            new SalesByCashierSheet($this->outletIds, $this->from, $this->to),
         ];
     }
 }

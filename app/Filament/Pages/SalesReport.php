@@ -2,16 +2,19 @@
 
 namespace App\Filament\Pages;
 
+use App\Models\Outlet;
 use App\Models\Sale;
 use App\Models\SaleItem;
 use App\Support\OutletContext;
 use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Select;
 use Filament\Pages\Page;
 use Filament\Tables;
 use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Table;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Auth;
 use UnitEnum;
 use BackedEnum;
 
@@ -33,9 +36,14 @@ class SalesReport extends Page implements HasTable
     public function getSummaryProperty(): array
     {
         [$from, $to] = $this->getDateRange();
-        $outletId = OutletContext::id();
+        [$scopeAllOutlets, $outletFilterIds, $selectedOutletId] = $this->getOutletScope();
 
-        $summaryRow = Sale::where('outlet_id', $outletId)
+        $summaryRow = Sale::query()
+            ->when(
+                $scopeAllOutlets,
+                fn (Builder $query) => $query->whereIn('outlet_id', $outletFilterIds),
+                fn (Builder $query) => $query->where('outlet_id', $selectedOutletId)
+            )
             ->whereBetween('created_at', [$from.' 00:00:00', $to.' 23:59:59'])
             ->where('status', 'paid')
             ->selectRaw('SUM(subtotal) as subtotal_sum')
@@ -47,7 +55,11 @@ class SalesReport extends Page implements HasTable
 
         $cogsTotal = SaleItem::query()
             ->join('sales', 'sales.id', '=', 'sale_items.sale_id')
-            ->where('sales.outlet_id', $outletId)
+            ->when(
+                $scopeAllOutlets,
+                fn (Builder $query) => $query->whereIn('sales.outlet_id', $outletFilterIds),
+                fn (Builder $query) => $query->where('sales.outlet_id', $selectedOutletId)
+            )
             ->where('sales.status', 'paid')
             ->whereBetween('sales.created_at', [$from.' 00:00:00', $to.' 23:59:59'])
             ->sum('sale_items.cogs_total');
@@ -76,13 +88,17 @@ class SalesReport extends Page implements HasTable
     public function getByProductProperty()
     {
         [$from, $to] = $this->getDateRange();
-        $outletId = OutletContext::id();
+        [$scopeAllOutlets, $outletFilterIds, $selectedOutletId] = $this->getOutletScope();
 
         return SaleItem::query()
             ->join('sales', 'sales.id', '=', 'sale_items.sale_id')
             ->join('products', 'products.id', '=', 'sale_items.product_id')
             ->leftJoin('categories', 'categories.id', '=', 'products.category_id')
-            ->where('sales.outlet_id', $outletId)
+            ->when(
+                $scopeAllOutlets,
+                fn (Builder $query) => $query->whereIn('sales.outlet_id', $outletFilterIds),
+                fn (Builder $query) => $query->where('sales.outlet_id', $selectedOutletId)
+            )
             ->where('sales.status', 'paid')
             ->whereBetween('sales.created_at', [$from.' 00:00:00', $to.' 23:59:59'])
             ->groupBy('sale_items.product_id', 'products.name', 'categories.name')
@@ -106,13 +122,17 @@ class SalesReport extends Page implements HasTable
     public function getByCategoryProperty()
     {
         [$from, $to] = $this->getDateRange();
-        $outletId = OutletContext::id();
+        [$scopeAllOutlets, $outletFilterIds, $selectedOutletId] = $this->getOutletScope();
 
         return SaleItem::query()
             ->join('sales', 'sales.id', '=', 'sale_items.sale_id')
             ->join('products', 'products.id', '=', 'sale_items.product_id')
             ->leftJoin('categories', 'categories.id', '=', 'products.category_id')
-            ->where('sales.outlet_id', $outletId)
+            ->when(
+                $scopeAllOutlets,
+                fn (Builder $query) => $query->whereIn('sales.outlet_id', $outletFilterIds),
+                fn (Builder $query) => $query->where('sales.outlet_id', $selectedOutletId)
+            )
             ->where('sales.status', 'paid')
             ->whereBetween('sales.created_at', [$from.' 00:00:00', $to.' 23:59:59'])
             ->groupBy('categories.id', 'categories.name')
@@ -135,12 +155,16 @@ class SalesReport extends Page implements HasTable
     public function getByCashierProperty()
     {
         [$from, $to] = $this->getDateRange();
-        $outletId = OutletContext::id();
+        [$scopeAllOutlets, $outletFilterIds, $selectedOutletId] = $this->getOutletScope();
 
         return SaleItem::query()
             ->join('sales', 'sales.id', '=', 'sale_items.sale_id')
             ->leftJoin('users', 'users.id', '=', 'sales.cashier_id')
-            ->where('sales.outlet_id', $outletId)
+            ->when(
+                $scopeAllOutlets,
+                fn (Builder $query) => $query->whereIn('sales.outlet_id', $outletFilterIds),
+                fn (Builder $query) => $query->where('sales.outlet_id', $selectedOutletId)
+            )
             ->where('sales.status', 'paid')
             ->whereBetween('sales.created_at', [$from.' 00:00:00', $to.' 23:59:59'])
             ->groupBy('sales.cashier_id', 'users.name')
@@ -162,10 +186,16 @@ class SalesReport extends Page implements HasTable
 
     public function table(Table $table): Table
     {
+        [$scopeAllOutlets, $outletFilterIds, $selectedOutletId] = $this->getOutletScope();
+
         return $table
             ->query(
                 Sale::query()
-                    ->where('outlet_id', OutletContext::id())
+                    ->when(
+                        $scopeAllOutlets,
+                        fn (Builder $query) => $query->whereIn('outlet_id', $outletFilterIds),
+                        fn (Builder $query) => $query->where('outlet_id', $selectedOutletId)
+                    )
                     ->where('status', 'paid')
                     ->withSum('items as cogs_total', 'cogs_total')
             )
@@ -218,6 +248,38 @@ class SalesReport extends Page implements HasTable
                     ->sortable(),
             ])
             ->filters([
+                Tables\Filters\Filter::make('outlet')
+                    ->form([
+                        Select::make('outlet_id')
+                            ->label('Cabang')
+                            ->options(function (): array {
+                                $user = Auth::user();
+                                $outlets = $user
+                                    ? $user->outlets()
+                                        ->where('outlets.is_active', true)
+                                        ->orderBy('outlets.name')
+                                        ->get(['outlets.id as id', 'outlets.code as code', 'outlets.name as name'])
+                                    : Outlet::where('is_active', true)->orderBy('name')->get(['id', 'code', 'name']);
+
+                                $options = ['all' => 'Semua Cabang'];
+                                foreach ($outlets as $outlet) {
+                                    $label = ($outlet->code ? $outlet->code.' - ' : '').$outlet->name;
+                                    $options[(string) $outlet->id] = $label;
+                                }
+
+                                return $options;
+                            })
+                            ->default((string) (OutletContext::id() ?? 'all'))
+                            ->searchable(),
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        $outletId = $data['outlet_id'] ?? null;
+                        if (! $outletId || $outletId === 'all') {
+                            return $query;
+                        }
+
+                        return $query->where('outlet_id', (int) $outletId);
+                    }),
                 Tables\Filters\Filter::make('date')
                     ->form([
                         DatePicker::make('from'),
@@ -245,5 +307,38 @@ class SalesReport extends Page implements HasTable
         $to = $state['to'] ?? now()->toDateString();
 
         return [$from, $to];
+    }
+
+    protected function getOutletScope(): array
+    {
+        $user = Auth::user();
+        $userOutlets = $user
+            ? $user->outlets()->where('is_active', true)->orderBy('name')->get(['outlets.id as id'])
+            : Outlet::where('is_active', true)->orderBy('name')->get(['id']);
+
+        $allowedOutletIds = $userOutlets->pluck('id')->all();
+        $activeOutletId = OutletContext::id();
+
+        $state = $this->getTableFilterState('outlet') ?? [];
+        $requestedOutletId = $state['outlet_id'] ?? null;
+        $scopeAllOutlets = $requestedOutletId === 'all';
+
+        $selectedOutletId = null;
+        if (! $scopeAllOutlets) {
+            $candidateOutletId = $requestedOutletId ? (int) $requestedOutletId : (int) $activeOutletId;
+            if ($candidateOutletId && in_array($candidateOutletId, $allowedOutletIds, true)) {
+                $selectedOutletId = $candidateOutletId;
+            } elseif ($activeOutletId && in_array((int) $activeOutletId, $allowedOutletIds, true)) {
+                $selectedOutletId = (int) $activeOutletId;
+            } else {
+                $selectedOutletId = $allowedOutletIds[0] ?? null;
+            }
+        }
+
+        $outletFilterIds = $scopeAllOutlets
+            ? $allowedOutletIds
+            : array_values(array_filter([$selectedOutletId]));
+
+        return [$scopeAllOutlets, $outletFilterIds, $selectedOutletId];
     }
 }

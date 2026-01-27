@@ -1,14 +1,23 @@
 @extends('layouts.app')
 
 @section('content')
-<h1 class="text-xl font-semibold mb-4">Sales Report</h1>
+<h1 class="text-xl font-semibold mb-1">Sales Report</h1>
+<div class="text-sm text-slate-500 mb-4">Outlet: {{ $selectedOutletLabel }}</div>
 
 <form method="GET" class="flex gap-2 mb-3">
     <input type="date" name="from" value="{{ $from }}" class="border border-slate-300 rounded px-3 py-2" placeholder="From date">
     <input type="date" name="to" value="{{ $to }}" class="border border-slate-300 rounded px-3 py-2" placeholder="To date">
+    <select name="outlet_id" class="border border-slate-300 rounded px-3 py-2">
+        <option value="all" @selected($scopeAllOutlets)>Semua Cabang</option>
+        @foreach ($userOutlets as $outlet)
+            <option value="{{ $outlet->id }}" @selected(! $scopeAllOutlets && $selectedOutletId === $outlet->id)>
+                {{ $outlet->code ? $outlet->code.' - ' : '' }}{{ $outlet->name }}
+            </option>
+        @endforeach
+    </select>
     <button class="bg-slate-900 text-white rounded px-3">Filter</button>
-    <a href="{{ route('reports.sales.excel', ['from' => $from, 'to' => $to]) }}" class="bg-slate-200 rounded px-3 py-2 text-sm">Excel</a>
-    <a href="{{ route('reports.sales.pdf', ['from' => $from, 'to' => $to]) }}" class="bg-slate-200 rounded px-3 py-2 text-sm">PDF</a>
+    <a href="{{ route('reports.sales.excel', ['from' => $from, 'to' => $to, 'outlet_id' => $scopeAllOutlets ? 'all' : $selectedOutletId]) }}" class="bg-slate-200 rounded px-3 py-2 text-sm">Excel</a>
+    <a href="{{ route('reports.sales.pdf', ['from' => $from, 'to' => $to, 'outlet_id' => $scopeAllOutlets ? 'all' : $selectedOutletId]) }}" class="bg-slate-200 rounded px-3 py-2 text-sm">PDF</a>
 </form>
 
 <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
@@ -78,6 +87,40 @@
 </div>
 
 <div class="mt-4">{{ $sales->links() }}</div>
+
+<h2 class="text-lg font-semibold mt-8 mb-3">Per Cabang</h2>
+<div class="bg-white rounded shadow overflow-x-auto mb-6">
+    <table class="min-w-full text-sm">
+        <thead class="text-left text-slate-500">
+            <tr>
+                <th class="py-2 px-3">Cabang</th>
+                <th>Transaksi</th>
+                <th>Net Sales</th>
+                <th>COGS</th>
+                <th>Gross Profit</th>
+                <th>Gross Margin</th>
+            </tr>
+        </thead>
+        <tbody>
+            @forelse ($byOutlet as $row)
+                <tr class="border-t">
+                    <td class="py-2 px-3">
+                        {{ $row->outlet_code ? $row->outlet_code.' - ' : '' }}{{ $row->outlet_name }}
+                    </td>
+                    <td>{{ number_format($row->transactions, 0, ',', '.') }}</td>
+                    <td>{{ number_format($row->net_sales, 0, ',', '.') }}</td>
+                    <td>{{ number_format($row->cogs_total, 0, ',', '.') }}</td>
+                    <td>{{ number_format($row->gross_profit, 0, ',', '.') }}</td>
+                    <td>{{ number_format($row->gross_margin, 2, ',', '.') }}%</td>
+                </tr>
+            @empty
+                <tr class="border-t">
+                    <td colspan="6" class="py-3 px-3 text-slate-500">Belum ada data.</td>
+                </tr>
+            @endforelse
+        </tbody>
+    </table>
+</div>
 
 <h2 class="text-lg font-semibold mt-8 mb-3">By Product</h2>
 <div class="bg-white rounded shadow overflow-x-auto mb-6">

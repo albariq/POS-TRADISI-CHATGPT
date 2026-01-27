@@ -5,11 +5,13 @@ namespace App\Http\Controllers;
 use App\Exports\InventoryReportExport;
 use App\Exports\SalesReportExport;
 use App\Models\InventoryStock;
+use App\Models\Outlet;
 use App\Models\Sale;
 use App\Models\SaleItem;
 use App\Support\OutletContext;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Facades\Excel;
 
 class ReportController extends Controller
@@ -21,11 +23,42 @@ class ReportController extends Controller
 
     public function sales(Request $request)
     {
-        $outletId = OutletContext::id();
+        $user = Auth::user();
+        $userOutlets = $user
+            ? $user->outlets()->where('is_active', true)->orderBy('name')->get(['id', 'code', 'name'])
+            : Outlet::where('is_active', true)->orderBy('name')->get(['id', 'code', 'name']);
+
+        $allowedOutletIds = $userOutlets->pluck('id')->all();
+        $activeOutletId = OutletContext::id();
+
+        $requestedOutletId = $request->input('outlet_id');
+        $scopeAllOutlets = $requestedOutletId === 'all';
+
+        $selectedOutletId = null;
+        if (! $scopeAllOutlets) {
+            $candidateOutletId = $requestedOutletId ? (int) $requestedOutletId : (int) $activeOutletId;
+            if ($candidateOutletId && in_array($candidateOutletId, $allowedOutletIds, true)) {
+                $selectedOutletId = $candidateOutletId;
+            } elseif ($activeOutletId && in_array((int) $activeOutletId, $allowedOutletIds, true)) {
+                $selectedOutletId = (int) $activeOutletId;
+            } else {
+                $selectedOutletId = $allowedOutletIds[0] ?? null;
+            }
+        }
+
+        $outletFilterIds = $scopeAllOutlets
+            ? $allowedOutletIds
+            : array_values(array_filter([$selectedOutletId]));
+
         $from = $request->input('from', now()->startOfMonth()->toDateString());
         $to = $request->input('to', now()->toDateString());
 
-        $salesBaseQuery = Sale::where('outlet_id', $outletId)
+        $salesBaseQuery = Sale::query()
+            ->when(
+                $scopeAllOutlets,
+                fn ($query) => $query->whereIn('outlet_id', $outletFilterIds),
+                fn ($query) => $query->where('outlet_id', $selectedOutletId)
+            )
             ->whereBetween('created_at', [$from.' 00:00:00', $to.' 23:59:59'])
             ->where('status', 'paid');
 
@@ -58,7 +91,11 @@ class ReportController extends Controller
 
         $cogsTotal = SaleItem::query()
             ->join('sales', 'sales.id', '=', 'sale_items.sale_id')
-            ->where('sales.outlet_id', $outletId)
+            ->when(
+                $scopeAllOutlets,
+                fn ($query) => $query->whereIn('sales.outlet_id', $outletFilterIds),
+                fn ($query) => $query->where('sales.outlet_id', $selectedOutletId)
+            )
             ->where('sales.status', 'paid')
             ->whereBetween('sales.created_at', [$from.' 00:00:00', $to.' 23:59:59'])
             ->sum('sale_items.cogs_total');
@@ -79,7 +116,11 @@ class ReportController extends Controller
             ->join('sales', 'sales.id', '=', 'sale_items.sale_id')
             ->join('products', 'products.id', '=', 'sale_items.product_id')
             ->leftJoin('categories', 'categories.id', '=', 'products.category_id')
-            ->where('sales.outlet_id', $outletId)
+            ->when(
+                $scopeAllOutlets,
+                fn ($query) => $query->whereIn('sales.outlet_id', $outletFilterIds),
+                fn ($query) => $query->where('sales.outlet_id', $selectedOutletId)
+            )
             ->where('sales.status', 'paid')
             ->whereBetween('sales.created_at', [$from.' 00:00:00', $to.' 23:59:59'])
             ->groupBy('sale_items.product_id', 'products.name', 'categories.name')
@@ -104,7 +145,11 @@ class ReportController extends Controller
             ->join('sales', 'sales.id', '=', 'sale_items.sale_id')
             ->join('products', 'products.id', '=', 'sale_items.product_id')
             ->leftJoin('categories', 'categories.id', '=', 'products.category_id')
-            ->where('sales.outlet_id', $outletId)
+            ->when(
+                $scopeAllOutlets,
+                fn ($query) => $query->whereIn('sales.outlet_id', $outletFilterIds),
+                fn ($query) => $query->where('sales.outlet_id', $selectedOutletId)
+            )
             ->where('sales.status', 'paid')
             ->whereBetween('sales.created_at', [$from.' 00:00:00', $to.' 23:59:59'])
             ->groupBy('categories.id', 'categories.name')
@@ -127,7 +172,11 @@ class ReportController extends Controller
         $byCashier = SaleItem::query()
             ->join('sales', 'sales.id', '=', 'sale_items.sale_id')
             ->leftJoin('users', 'users.id', '=', 'sales.cashier_id')
-            ->where('sales.outlet_id', $outletId)
+            ->when(
+                $scopeAllOutlets,
+                fn ($query) => $query->whereIn('sales.outlet_id', $outletFilterIds),
+                fn ($query) => $query->where('sales.outlet_id', $selectedOutletId)
+            )
             ->where('sales.status', 'paid')
             ->whereBetween('sales.created_at', [$from.' 00:00:00', $to.' 23:59:59'])
             ->groupBy('sales.cashier_id', 'users.name')
@@ -147,7 +196,50 @@ class ReportController extends Controller
                 return $row;
             });
 
-        return view('reports.sales', compact('sales', 'from', 'to', 'summary', 'byProduct', 'byCategory', 'byCashier'));
+        $byOutlet = SaleItem::query()
+            ->join('sales', 'sales.id', '=', 'sale_items.sale_id')
+            ->join('outlets', 'outlets.id', '=', 'sales.outlet_id')
+            ->whereIn('sales.outlet_id', $outletFilterIds)
+            ->where('sales.status', 'paid')
+            ->whereBetween('sales.created_at', [$from.' 00:00:00', $to.' 23:59:59'])
+            ->groupBy('outlets.id', 'outlets.code', 'outlets.name')
+            ->selectRaw('outlets.id as outlet_id')
+            ->selectRaw('outlets.code as outlet_code')
+            ->selectRaw('outlets.name as outlet_name')
+            ->selectRaw('COUNT(DISTINCT sales.id) as transactions')
+            ->selectRaw('SUM(sale_items.line_total) as net_sales')
+            ->selectRaw('SUM(sale_items.cogs_total) as cogs_total')
+            ->orderByDesc('net_sales')
+            ->get()
+            ->map(function ($row) {
+                $grossProfit = (float) $row->net_sales - (float) $row->cogs_total;
+                $grossMargin = (float) $row->net_sales > 0 ? ($grossProfit / (float) $row->net_sales) * 100 : 0;
+                $row->gross_profit = $grossProfit;
+                $row->gross_margin = $grossMargin;
+                return $row;
+            });
+
+        $selectedOutlet = $selectedOutletId
+            ? $userOutlets->firstWhere('id', $selectedOutletId)
+            : null;
+        $selectedOutletLabel = $scopeAllOutlets
+            ? 'Semua Cabang'
+            : ($selectedOutlet?->name ?? 'Cabang Aktif');
+
+        return view('reports.sales', compact(
+            'sales',
+            'from',
+            'to',
+            'summary',
+            'byProduct',
+            'byCategory',
+            'byCashier',
+            'byOutlet',
+            'userOutlets',
+            'scopeAllOutlets',
+            'selectedOutletId',
+            'selectedOutletLabel'
+        ));
     }
 
     public function inventory()
@@ -159,11 +251,36 @@ class ReportController extends Controller
 
     public function exportSalesExcel(Request $request)
     {
-        $outletId = OutletContext::id();
+        $user = Auth::user();
+        $userOutlets = $user
+            ? $user->outlets()->where('is_active', true)->orderBy('name')->get(['id', 'code', 'name'])
+            : Outlet::where('is_active', true)->orderBy('name')->get(['id', 'code', 'name']);
+
+        $allowedOutletIds = $userOutlets->pluck('id')->all();
+        $activeOutletId = OutletContext::id();
+        $requestedOutletId = $request->input('outlet_id');
+        $scopeAllOutlets = $requestedOutletId === 'all';
+
+        $selectedOutletId = null;
+        if (! $scopeAllOutlets) {
+            $candidateOutletId = $requestedOutletId ? (int) $requestedOutletId : (int) $activeOutletId;
+            if ($candidateOutletId && in_array($candidateOutletId, $allowedOutletIds, true)) {
+                $selectedOutletId = $candidateOutletId;
+            } elseif ($activeOutletId && in_array((int) $activeOutletId, $allowedOutletIds, true)) {
+                $selectedOutletId = (int) $activeOutletId;
+            } else {
+                $selectedOutletId = $allowedOutletIds[0] ?? null;
+            }
+        }
+
+        $outletFilterIds = $scopeAllOutlets
+            ? $allowedOutletIds
+            : array_values(array_filter([$selectedOutletId]));
+
         $from = $request->input('from', now()->startOfMonth()->toDateString());
         $to = $request->input('to', now()->toDateString());
 
-        return Excel::download(new SalesReportExport($outletId, $from, $to), 'sales-report.xlsx');
+        return Excel::download(new SalesReportExport($outletFilterIds, $from, $to), 'sales-report.xlsx');
     }
 
     public function exportInventoryExcel()
@@ -174,11 +291,41 @@ class ReportController extends Controller
 
     public function exportSalesPdf(Request $request)
     {
-        $outletId = OutletContext::id();
+        $user = Auth::user();
+        $userOutlets = $user
+            ? $user->outlets()->where('is_active', true)->orderBy('name')->get(['id', 'code', 'name'])
+            : Outlet::where('is_active', true)->orderBy('name')->get(['id', 'code', 'name']);
+
+        $allowedOutletIds = $userOutlets->pluck('id')->all();
+        $activeOutletId = OutletContext::id();
+        $requestedOutletId = $request->input('outlet_id');
+        $scopeAllOutlets = $requestedOutletId === 'all';
+
+        $selectedOutletId = null;
+        if (! $scopeAllOutlets) {
+            $candidateOutletId = $requestedOutletId ? (int) $requestedOutletId : (int) $activeOutletId;
+            if ($candidateOutletId && in_array($candidateOutletId, $allowedOutletIds, true)) {
+                $selectedOutletId = $candidateOutletId;
+            } elseif ($activeOutletId && in_array((int) $activeOutletId, $allowedOutletIds, true)) {
+                $selectedOutletId = (int) $activeOutletId;
+            } else {
+                $selectedOutletId = $allowedOutletIds[0] ?? null;
+            }
+        }
+
+        $outletFilterIds = $scopeAllOutlets
+            ? $allowedOutletIds
+            : array_values(array_filter([$selectedOutletId]));
+
         $from = $request->input('from', now()->startOfMonth()->toDateString());
         $to = $request->input('to', now()->toDateString());
 
-        $salesBaseQuery = Sale::where('outlet_id', $outletId)
+        $salesBaseQuery = Sale::query()
+            ->when(
+                $scopeAllOutlets,
+                fn ($query) => $query->whereIn('outlet_id', $outletFilterIds),
+                fn ($query) => $query->where('outlet_id', $selectedOutletId)
+            )
             ->whereBetween('created_at', [$from.' 00:00:00', $to.' 23:59:59'])
             ->where('status', 'paid');
 
@@ -210,7 +357,11 @@ class ReportController extends Controller
 
         $cogsTotal = SaleItem::query()
             ->join('sales', 'sales.id', '=', 'sale_items.sale_id')
-            ->where('sales.outlet_id', $outletId)
+            ->when(
+                $scopeAllOutlets,
+                fn ($query) => $query->whereIn('sales.outlet_id', $outletFilterIds),
+                fn ($query) => $query->where('sales.outlet_id', $selectedOutletId)
+            )
             ->where('sales.status', 'paid')
             ->whereBetween('sales.created_at', [$from.' 00:00:00', $to.' 23:59:59'])
             ->sum('sale_items.cogs_total');
@@ -231,7 +382,11 @@ class ReportController extends Controller
             ->join('sales', 'sales.id', '=', 'sale_items.sale_id')
             ->join('products', 'products.id', '=', 'sale_items.product_id')
             ->leftJoin('categories', 'categories.id', '=', 'products.category_id')
-            ->where('sales.outlet_id', $outletId)
+            ->when(
+                $scopeAllOutlets,
+                fn ($query) => $query->whereIn('sales.outlet_id', $outletFilterIds),
+                fn ($query) => $query->where('sales.outlet_id', $selectedOutletId)
+            )
             ->where('sales.status', 'paid')
             ->whereBetween('sales.created_at', [$from.' 00:00:00', $to.' 23:59:59'])
             ->groupBy('sale_items.product_id', 'products.name', 'categories.name')
@@ -255,7 +410,11 @@ class ReportController extends Controller
             ->join('sales', 'sales.id', '=', 'sale_items.sale_id')
             ->join('products', 'products.id', '=', 'sale_items.product_id')
             ->leftJoin('categories', 'categories.id', '=', 'products.category_id')
-            ->where('sales.outlet_id', $outletId)
+            ->when(
+                $scopeAllOutlets,
+                fn ($query) => $query->whereIn('sales.outlet_id', $outletFilterIds),
+                fn ($query) => $query->where('sales.outlet_id', $selectedOutletId)
+            )
             ->where('sales.status', 'paid')
             ->whereBetween('sales.created_at', [$from.' 00:00:00', $to.' 23:59:59'])
             ->groupBy('categories.id', 'categories.name')
@@ -278,7 +437,11 @@ class ReportController extends Controller
         $byCashier = SaleItem::query()
             ->join('sales', 'sales.id', '=', 'sale_items.sale_id')
             ->leftJoin('users', 'users.id', '=', 'sales.cashier_id')
-            ->where('sales.outlet_id', $outletId)
+            ->when(
+                $scopeAllOutlets,
+                fn ($query) => $query->whereIn('sales.outlet_id', $outletFilterIds),
+                fn ($query) => $query->where('sales.outlet_id', $selectedOutletId)
+            )
             ->where('sales.status', 'paid')
             ->whereBetween('sales.created_at', [$from.' 00:00:00', $to.' 23:59:59'])
             ->groupBy('sales.cashier_id', 'users.name')
@@ -298,7 +461,23 @@ class ReportController extends Controller
                 return $row;
             });
 
-        $pdf = Pdf::loadView('reports.sales_pdf', compact('sales', 'from', 'to', 'summary', 'byProduct', 'byCategory', 'byCashier'));
+        $selectedOutlet = $selectedOutletId
+            ? $userOutlets->firstWhere('id', $selectedOutletId)
+            : null;
+        $selectedOutletLabel = $scopeAllOutlets
+            ? 'Semua Cabang'
+            : ($selectedOutlet?->name ?? 'Cabang Aktif');
+
+        $pdf = Pdf::loadView('reports.sales_pdf', compact(
+            'sales',
+            'from',
+            'to',
+            'summary',
+            'byProduct',
+            'byCategory',
+            'byCashier',
+            'selectedOutletLabel'
+        ));
         return $pdf->download('sales-report.pdf');
     }
 

@@ -9,9 +9,22 @@ use Illuminate\Support\Facades\Auth;
 
 class StockService
 {
-    public function adjust(int $productId, ?int $variantId, float $qtyGramsDelta, string $type, ?string $reason = null, ?string $referenceType = null, ?int $referenceId = null): InventoryStock
+    public function adjust(
+        int $productId,
+        ?int $variantId,
+        float $qtyGramsDelta,
+        string $type,
+        ?string $reason = null,
+        ?string $referenceType = null,
+        ?int $referenceId = null,
+        ?int $outletId = null
+    ): InventoryStock
     {
-        $outletId = OutletContext::id();
+        $outletId = $outletId ?? OutletContext::id();
+
+        if (! $outletId) {
+            throw new \RuntimeException('Active outlet is not set.');
+        }
 
         $stock = InventoryStock::firstOrCreate([
             'outlet_id' => $outletId,

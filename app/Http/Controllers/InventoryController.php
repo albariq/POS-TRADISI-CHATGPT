@@ -48,7 +48,10 @@ class InventoryController extends Controller
             $data['product_variant_id'] ?? null,
             $delta,
             $data['type'],
-            $data['reason'] ?? null
+            $data['reason'] ?? null,
+            null,
+            null,
+            OutletContext::id()
         );
 
         AuditLogger::log('stock_adjusted', InventoryStock::class, $stock->id, null, $stock->toArray());

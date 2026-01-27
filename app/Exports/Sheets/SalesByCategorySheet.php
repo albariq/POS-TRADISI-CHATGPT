@@ -10,7 +10,7 @@ use Maatwebsite\Excel\Concerns\WithTitle;
 class SalesByCategorySheet implements FromCollection, WithHeadings, WithTitle
 {
     public function __construct(
-        protected int $outletId,
+        protected array $outletIds,
         protected string $from,
         protected string $to
     ) {
@@ -22,7 +22,7 @@ class SalesByCategorySheet implements FromCollection, WithHeadings, WithTitle
             ->join('sales', 'sales.id', '=', 'sale_items.sale_id')
             ->join('products', 'products.id', '=', 'sale_items.product_id')
             ->leftJoin('categories', 'categories.id', '=', 'products.category_id')
-            ->where('sales.outlet_id', $this->outletId)
+            ->whereIn('sales.outlet_id', $this->outletIds)
             ->where('sales.status', 'paid')
             ->whereBetween('sales.created_at', [$this->from.' 00:00:00', $this->to.' 23:59:59'])
             ->groupBy('categories.id', 'categories.name')

@@ -108,7 +108,10 @@ class StockAdjustment extends Page implements HasForms
             $variantId,
             $delta,
             $data['type'],
-            $data['reason'] ?? null
+            $data['reason'] ?? null,
+            null,
+            null,
+            OutletContext::id()
         );
 
         Notification::make()

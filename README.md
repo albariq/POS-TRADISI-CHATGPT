@@ -74,3 +74,9 @@ php artisan migrate --force
 ```
 
 If you are using Laragon, you can also run the app via Laragon's web server and open the project URL directly instead of using `php artisan serve`.
+
+## Commands Server
+
+- /usr/bin/php8.4 /usr/local/bin/composer install --no-dev
+- /usr/bin/php8.4 artisan migrate --force
+- /usr/bin/php8.4 artisan optimize:clea

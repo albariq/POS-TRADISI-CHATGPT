@@ -10,7 +10,7 @@ use Maatwebsite\Excel\Concerns\WithTitle;
 class SalesTransactionsSheet implements FromCollection, WithHeadings, WithTitle
 {
     public function __construct(
-        protected int $outletId,
+        protected array $outletIds,
         protected string $from,
         protected string $to
     ) {
@@ -18,7 +18,7 @@ class SalesTransactionsSheet implements FromCollection, WithHeadings, WithTitle
 
     public function collection()
     {
-        return Sale::where('outlet_id', $this->outletId)
+        return Sale::whereIn('outlet_id', $this->outletIds)
             ->whereBetween('created_at', [$this->from.' 00:00:00', $this->to.' 23:59:59'])
             ->where('status', 'paid')
             ->with('customer', 'items')

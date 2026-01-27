@@ -10,7 +10,7 @@ use Maatwebsite\Excel\Concerns\WithTitle;
 class SalesByCashierSheet implements FromCollection, WithHeadings, WithTitle
 {
     public function __construct(
-        protected int $outletId,
+        protected array $outletIds,
         protected string $from,
         protected string $to
     ) {
@@ -21,7 +21,7 @@ class SalesByCashierSheet implements FromCollection, WithHeadings, WithTitle
         return SaleItem::query()
             ->join('sales', 'sales.id', '=', 'sale_items.sale_id')
             ->leftJoin('users', 'users.id', '=', 'sales.cashier_id')
-            ->where('sales.outlet_id', $this->outletId)
+            ->whereIn('sales.outlet_id', $this->outletIds)
             ->where('sales.status', 'paid')
             ->whereBetween('sales.created_at', [$this->from.' 00:00:00', $this->to.' 23:59:59'])
             ->groupBy('sales.cashier_id', 'users.name')

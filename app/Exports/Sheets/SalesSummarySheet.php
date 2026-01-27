@@ -12,7 +12,7 @@ use Maatwebsite\Excel\Concerns\WithTitle;
 class SalesSummarySheet implements FromCollection, WithHeadings, WithTitle
 {
     public function __construct(
-        protected int $outletId,
+        protected array $outletIds,
         protected string $from,
         protected string $to
     ) {
@@ -20,7 +20,7 @@ class SalesSummarySheet implements FromCollection, WithHeadings, WithTitle
 
     public function collection(): Collection
     {
-        $summaryRow = Sale::where('outlet_id', $this->outletId)
+        $summaryRow = Sale::whereIn('outlet_id', $this->outletIds)
             ->whereBetween('created_at', [$this->from.' 00:00:00', $this->to.' 23:59:59'])
             ->where('status', 'paid')
             ->selectRaw('SUM(subtotal) as subtotal_sum')
@@ -32,7 +32,7 @@ class SalesSummarySheet implements FromCollection, WithHeadings, WithTitle
 
         $cogsTotal = SaleItem::query()
             ->join('sales', 'sales.id', '=', 'sale_items.sale_id')
-            ->where('sales.outlet_id', $this->outletId)
+            ->whereIn('sales.outlet_id', $this->outletIds)
             ->where('sales.status', 'paid')
             ->whereBetween('sales.created_at', [$this->from.' 00:00:00', $this->to.' 23:59:59'])
             ->sum('sale_items.cogs_total');

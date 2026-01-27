@@ -116,7 +116,8 @@ class SaleService
                         'out',
                         'sale',
                         Sale::class,
-                        $sale->id
+                        $sale->id,
+                        $outlet->id
                     );
                 }
             }
