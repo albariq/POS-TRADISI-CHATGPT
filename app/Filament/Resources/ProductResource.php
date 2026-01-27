@@ -3,15 +3,20 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\ProductResource\Pages;
+use App\Models\Category;
+use App\Models\Outlet;
 use App\Models\Product;
+use App\Models\Tag;
 use App\Support\OutletContext;
 use Filament\Forms;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Auth;
 use UnitEnum;
 use BackedEnum;
 
@@ -29,6 +34,22 @@ class ProductResource extends Resource
             ->schema([
                 Section::make('Produk')
                     ->schema([
+                        Forms\Components\Select::make('outlet_ids')
+                            ->label('Outlet')
+                            ->options(fn (): array => static::getAllowedOutletOptions())
+                            ->default(function (?Product $record): array {
+                                if ($record) {
+                                    return $record->outlets()->pluck('outlets.id')->all();
+                                }
+
+                                return OutletContext::id() ? [OutletContext::id()] : [];
+                            })
+                            ->multiple()
+                            ->required()
+                            ->searchable()
+                            ->preload()
+                            ->live()
+                            ->helperText('Pilih satu atau beberapa outlet untuk produk ini.'),
                         Forms\Components\TextInput::make('sku')
                             ->required()
                             ->maxLength(100),
@@ -48,12 +69,47 @@ class ProductResource extends Resource
                             ->rows(3)
                             ->columnSpanFull(),
                         Forms\Components\Select::make('category_id')
-                            ->relationship('category', 'name')
+                            ->label('Kategori')
+                            ->options(function (Get $get): array {
+                                $outletIds = $get('outlet_ids') ?? [];
+                                $outletId = (int) (is_array($outletIds) ? ($outletIds[0] ?? 0) : $outletIds);
+                                if (! $outletId) {
+                                    $outletId = (int) (OutletContext::id() ?? 0);
+                                }
+
+                                if (! $outletId) {
+                                    return [];
+                                }
+
+                                return Category::query()
+                                    ->where('outlet_id', $outletId)
+                                    ->orderBy('name')
+                                    ->pluck('name', 'id')
+                                    ->all();
+                            })
                             ->searchable()
                             ->preload()
                             ->nullable(),
                         Forms\Components\Select::make('tags')
-                            ->relationship('tags', 'name')
+                            ->label('Tags')
+                            ->options(function (Get $get): array {
+                                $outletIds = $get('outlet_ids') ?? [];
+                                $outletId = (int) (is_array($outletIds) ? ($outletIds[0] ?? 0) : $outletIds);
+                                if (! $outletId) {
+                                    $outletId = (int) (OutletContext::id() ?? 0);
+                                }
+
+                                if (! $outletId) {
+                                    return [];
+                                }
+
+                                return Tag::query()
+                                    ->where('outlet_id', $outletId)
+                                    ->orderBy('name')
+                                    ->pluck('name', 'id')
+                                    ->all();
+                            })
+                            ->default(fn (?Product $record): array => $record?->tags->pluck('id')->all() ?? [])
                             ->multiple()
                             ->preload()
                             ->searchable(),
@@ -115,7 +171,7 @@ class ProductResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->where('outlet_id', OutletContext::id());
+            ->forOutlet(OutletContext::id());
     }
 
     public static function getPages(): array
@@ -125,5 +181,32 @@ class ProductResource extends Resource
             'create' => Pages\CreateProduct::route('/create'),
             'edit' => Pages\EditProduct::route('/{record}/edit'),
         ];
+    }
+
+    /**
+     * Limit outlet options to outlets assigned to the current user.
+     *
+     * @return array<int, string>
+     */
+    protected static function getAllowedOutletOptions(): array
+    {
+        $user = Auth::user();
+
+        if (! $user) {
+            return [];
+        }
+
+        $allowedOutletIds = $user->outlets()->pluck('outlets.id')->all();
+
+        if (empty($allowedOutletIds)) {
+            return [];
+        }
+
+        return Outlet::query()
+            ->whereIn('id', $allowedOutletIds)
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->pluck('name', 'id')
+            ->all();
     }
 }

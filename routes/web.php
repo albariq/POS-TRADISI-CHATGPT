@@ -13,8 +13,20 @@ use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ShiftController;
 use App\Http\Controllers\TagController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
 
-Route::get('/', fn () => redirect()->route('dashboard'));
+Route::get('/', function () {
+    if (! Auth::check()) {
+        return redirect()->route('login');
+    }
+
+    $user = Auth::user();
+    $defaultRoute = $user->hasRole('CASHIER')
+        ? route('pos.index')
+        : url('/admin');
+
+    return redirect()->to($defaultRoute);
+});
 
 Route::get('/login', [AuthController::class, 'show'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.submit');

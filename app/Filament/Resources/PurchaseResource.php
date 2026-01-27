@@ -85,7 +85,7 @@ class PurchaseResource extends Resource
                             ->schema([
                                 Forms\Components\Select::make('product_id')
                                     ->label('Produk')
-                                    ->options(fn (Get $get): array => Product::where('outlet_id', $get('../../outlet_id') ?? OutletContext::id())
+                                    ->options(fn (Get $get): array => Product::forOutlet((int) ($get('../../outlet_id') ?? OutletContext::id()))
                                         ->orderBy('name')
                                         ->pluck('name', 'id')
                                         ->toArray())

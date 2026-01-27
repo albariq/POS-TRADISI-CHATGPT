@@ -49,7 +49,7 @@ class StockAdjustment extends Page implements HasForms
                     ->schema([
                         Select::make('product_id')
                             ->label('Produk')
-                            ->options(fn (): array => Product::where('outlet_id', OutletContext::id())
+                            ->options(fn (): array => Product::forOutlet(OutletContext::id())
                                 ->orderBy('name')
                                 ->pluck('name', 'id')
                                 ->toArray())
@@ -90,7 +90,7 @@ class StockAdjustment extends Page implements HasForms
     {
         $data = $this->form->getState();
 
-        $product = Product::where('outlet_id', OutletContext::id())->findOrFail($data['product_id']);
+        $product = Product::forOutlet(OutletContext::id())->findOrFail($data['product_id']);
         $variantId = $data['product_variant_id'] ?? null;
 
         if ($variantId) {

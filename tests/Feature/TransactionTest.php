@@ -35,12 +35,12 @@ class TransactionTest extends TestCase
         $user->outlets()->attach($outlet->id, ['is_default' => true]);
 
         $product = Product::create([
-            'outlet_id' => $outlet->id,
             'sku' => 'SKU-1',
             'name' => 'Test Product',
             'base_price' => 10000,
             'is_active' => true,
         ]);
+        $product->outlets()->attach($outlet->id);
 
         $this->actingAs($user);
 

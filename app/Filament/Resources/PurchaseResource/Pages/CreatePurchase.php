@@ -52,7 +52,7 @@ class CreatePurchase extends CreateRecord
             ->all();
 
         if (! empty($productIds)) {
-            $validProductCount = Product::where('outlet_id', $outletId)
+            $validProductCount = Product::forOutlet($outletId)
                 ->whereIn('id', $productIds)
                 ->count();
 

@@ -18,11 +18,13 @@ class ProductController extends Controller
     public function index(Request $request)
     {
         $outletId = OutletContext::id();
-        $query = Product::where('outlet_id', $outletId)->with('category');
+        $query = Product::forOutlet($outletId)->with('category');
 
         if ($request->filled('q')) {
-            $query->where('name', 'like', '%'.$request->q.'%')
-                ->orWhere('sku', 'like', '%'.$request->q.'%');
+            $query->where(function ($subQuery) use ($request) {
+                $subQuery->where('name', 'like', '%'.$request->q.'%')
+                    ->orWhere('sku', 'like', '%'.$request->q.'%');
+            });
         }
 
         $products = $query->orderBy('name')->paginate(20);
@@ -64,7 +66,6 @@ class ProductController extends Controller
         ]);
 
         $product = Product::create([
-            'outlet_id' => $outletId,
             'category_id' => $data['category_id'] ?? null,
             'sku' => $data['sku'],
             'name' => $data['name'],
@@ -75,6 +76,8 @@ class ProductController extends Controller
             'has_variants' => (bool) ($data['has_variants'] ?? false),
             'is_active' => (bool) ($data['is_active'] ?? true),
         ]);
+
+        $product->outlets()->sync([$outletId]);
 
         if (! empty($data['tags'])) {
             $product->tags()->sync($data['tags']);
@@ -104,28 +107,31 @@ class ProductController extends Controller
 
     public function edit(Product $product)
     {
-        $this->authorizeOutlet($product->outlet_id);
+        $this->authorizeOutlet($product, OutletContext::id());
         $product->load('variants', 'tags');
-        $categories = Category::where('outlet_id', $product->outlet_id)->orderBy('name')->get();
-        $tags = Tag::where('outlet_id', $product->outlet_id)->orderBy('name')->get();
+        $outletId = OutletContext::id();
+        $categories = Category::where('outlet_id', $outletId)->orderBy('name')->get();
+        $tags = Tag::where('outlet_id', $outletId)->orderBy('name')->get();
 
         return view('products.edit', compact('product', 'categories', 'tags'));
     }
 
     public function show(Product $product)
     {
-        $this->authorizeOutlet($product->outlet_id);
+        $this->authorizeOutlet($product, OutletContext::id());
 
         $product->load('category', 'tags', 'variants');
 
-        $stocks = InventoryStock::where('outlet_id', $product->outlet_id)
+        $outletId = OutletContext::id();
+
+        $stocks = InventoryStock::where('outlet_id', $outletId)
             ->where('product_id', $product->id)
             ->with('variant')
             ->orderByRaw('product_variant_id is null desc')
             ->orderBy('product_variant_id')
             ->get();
 
-        $movements = StockMovement::where('outlet_id', $product->outlet_id)
+        $movements = StockMovement::where('outlet_id', $outletId)
             ->where('product_id', $product->id)
             ->with('variant', 'creator')
             ->orderByDesc('created_at')
@@ -136,7 +142,7 @@ class ProductController extends Controller
 
     public function update(Request $request, Product $product)
     {
-        $this->authorizeOutlet($product->outlet_id);
+        $this->authorizeOutlet($product, OutletContext::id());
 
         $data = $request->validate([
             'sku' => ['required', 'string'],
@@ -216,9 +222,9 @@ class ProductController extends Controller
         return redirect()->route('products.index');
     }
 
-    protected function authorizeOutlet(int $outletId): void
+    protected function authorizeOutlet(Product $product, ?int $outletId): void
     {
-        if ($outletId !== OutletContext::id()) {
+        if (! $outletId || ! $product->isAvailableInOutlet($outletId)) {
             abort(403);
         }
     }

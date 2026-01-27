@@ -23,7 +23,7 @@ class InventoryController extends Controller
             ->orderBy('id', 'desc')
             ->paginate(20);
 
-        $products = Product::where('outlet_id', OutletContext::id())->orderBy('name')->get();
+        $products = Product::forOutlet(OutletContext::id())->orderBy('name')->get();
 
         return view('inventory.index', compact('stocks', 'products'));
     }

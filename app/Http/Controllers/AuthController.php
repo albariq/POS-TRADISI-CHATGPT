@@ -25,7 +25,22 @@ class AuthController extends Controller
                 Auth::logout();
                 return back()->withErrors(['email' => 'Account is inactive.']);
             }
-            return redirect()->intended(route('dashboard'));
+
+            $user = Auth::user();
+            if ($user->hasRole('CASHIER')) {
+                // Always send cashiers to POS, even if an intended URL exists (e.g. /admin).
+                $request->session()->forget('url.intended');
+
+                $activeOutletCount = $user->outlets()->where('is_active', true)->count();
+                if ($activeOutletCount > 1) {
+                    // Force outlet selection for cashiers with multiple active outlets.
+                    $request->session()->forget('active_outlet_id');
+                }
+
+                return redirect()->route('pos.index');
+            }
+
+            return redirect()->intended(url('/admin'));
         }
 
         return back()->withErrors([

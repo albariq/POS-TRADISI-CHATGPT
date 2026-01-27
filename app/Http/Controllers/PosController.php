@@ -21,11 +21,13 @@ class PosController extends Controller
     public function index(Request $request)
     {
         $outletId = OutletContext::id();
-        $query = Product::where('outlet_id', $outletId)->where('is_active', true)->with('variants');
+        $query = Product::forOutlet($outletId)->where('is_active', true)->with('variants');
         if ($request->filled('q')) {
-            $query->where('name', 'like', '%'.$request->q.'%')
-                ->orWhere('sku', 'like', '%'.$request->q.'%')
-                ->orWhere('barcode', 'like', '%'.$request->q.'%');
+            $query->where(function ($subQuery) use ($request) {
+                $subQuery->where('name', 'like', '%'.$request->q.'%')
+                    ->orWhere('sku', 'like', '%'.$request->q.'%')
+                    ->orWhere('barcode', 'like', '%'.$request->q.'%');
+            });
         }
 
         $products = $query->orderBy('name')->limit(30)->get();
@@ -56,10 +58,7 @@ class PosController extends Controller
             'qty' => ['nullable', 'integer', 'min:1'],
         ]);
 
-        $product = Product::findOrFail($data['product_id']);
-        if ($product->outlet_id !== OutletContext::id()) {
-            abort(403);
-        }
+        $product = Product::forOutlet(OutletContext::id())->findOrFail($data['product_id']);
 
         $variant = null;
         if (! empty($data['product_variant_id'])) {

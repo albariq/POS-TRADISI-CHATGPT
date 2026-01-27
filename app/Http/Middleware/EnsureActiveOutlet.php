@@ -21,15 +21,29 @@ class EnsureActiveOutlet
         }
 
         $user = Auth::user();
-        $outletCount = $user->outlets()->count();
-        if ($outletCount === 1) {
-            $singleOutlet = $user->outlets()->first();
-            Session::put('active_outlet_id', $singleOutlet->id);
+        $activeOutlets = $user->outlets()->where('is_active', true);
+        $activeOutletCount = $activeOutlets->count();
+        $isCashier = $user->hasRole('CASHIER');
+
+        // Only cashiers with multiple active outlets should be forced to choose.
+        if ($isCashier && $activeOutletCount > 1) {
+            if (! $request->is('outlets/select') && ! $request->is('outlets/select/*')) {
+                return redirect()->route('outlets.select');
+            }
+
             return $next($request);
         }
 
-        if (! $request->is('outlets/select') && ! $request->is('outlets/select/*')) {
-            return redirect()->route('outlets.select');
+        // For everyone else (or cashiers with 0/1 active outlet), auto-select.
+        $defaultActiveOutlet = $user->outlets()
+            ->wherePivot('is_default', true)
+            ->where('is_active', true)
+            ->first();
+
+        $outletToUse = $defaultActiveOutlet ?? $activeOutlets->first();
+
+        if ($outletToUse) {
+            Session::put('active_outlet_id', $outletToUse->id);
         }
 
         return $next($request);

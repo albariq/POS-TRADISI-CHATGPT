@@ -27,6 +27,12 @@ class OutletSelectionController extends Controller
         }
 
         Session::put('active_outlet_id', $outlet->id);
-        return redirect()->route('dashboard');
+
+        $user = Auth::user();
+        $defaultRoute = $user->hasRole('CASHIER')
+            ? route('pos.index')
+            : url('/admin');
+
+        return redirect()->to($defaultRoute);
     }
 }

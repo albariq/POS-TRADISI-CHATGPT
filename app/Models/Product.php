@@ -10,7 +10,6 @@ class Product extends Model
     use HasFactory;
 
     protected $fillable = [
-        'outlet_id',
         'category_id',
         'sku',
         'name',
@@ -29,11 +28,6 @@ class Product extends Model
         'is_active' => 'boolean',
     ];
 
-    public function outlet()
-    {
-        return $this->belongsTo(Outlet::class);
-    }
-
     public function category()
     {
         return $this->belongsTo(Category::class);
@@ -47,5 +41,24 @@ class Product extends Model
     public function tags()
     {
         return $this->belongsToMany(Tag::class);
+    }
+
+    public function outlets()
+    {
+        return $this->belongsToMany(Outlet::class, 'product_outlets')->withTimestamps();
+    }
+
+    public function scopeForOutlet($query, ?int $outletId)
+    {
+        if (! $outletId) {
+            return $query->whereRaw('1 = 0');
+        }
+
+        return $query->whereHas('outlets', fn ($q) => $q->where('outlets.id', $outletId));
+    }
+
+    public function isAvailableInOutlet(int $outletId): bool
+    {
+        return $this->outlets()->where('outlets.id', $outletId)->exists();
     }
 }

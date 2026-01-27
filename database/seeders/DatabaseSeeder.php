@@ -107,10 +107,8 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $robustaGayo = Product::updateOrCreate([
-            'outlet_id' => $outletA->id,
             'sku' => 'RG',
         ], [
-            'outlet_id' => $outletA->id,
             'category_id' => $category->id,
             'name' => 'Robusta Gayo',
             'base_price' => 21000,
@@ -118,13 +116,12 @@ class DatabaseSeeder extends Seeder
             'has_variants' => true,
             'is_active' => true,
         ]);
+        $robustaGayo->outlets()->syncWithoutDetaching([$outletA->id]);
         $robustaGayo->tags()->sync([$tag->id]);
 
         $robustaGayoPremium = Product::updateOrCreate([
-            'outlet_id' => $outletA->id,
             'sku' => 'RGP',
         ], [
-            'outlet_id' => $outletA->id,
             'category_id' => $category->id,
             'name' => 'Robusta Gayo Premium',
             'base_price' => 25000,
@@ -132,6 +129,7 @@ class DatabaseSeeder extends Seeder
             'has_variants' => true,
             'is_active' => true,
         ]);
+        $robustaGayoPremium->outlets()->syncWithoutDetaching([$outletA->id]);
         $robustaGayoPremium->tags()->sync([$tag->id]);
 
         $rg100 = ProductVariant::updateOrCreate([
