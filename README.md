@@ -79,4 +79,4 @@ If you are using Laragon, you can also run the app via Laragon's web server and 
 
 - /usr/bin/php8.4 /usr/local/bin/composer install --no-dev
 - /usr/bin/php8.4 artisan migrate --force
-- /usr/bin/php8.4 artisan optimize:clea
+- /usr/bin/php8.4 artisan optimize:clear
