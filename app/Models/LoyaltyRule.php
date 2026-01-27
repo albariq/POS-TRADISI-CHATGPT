@@ -11,12 +11,14 @@ class LoyaltyRule extends Model
 
     protected $fillable = [
         'outlet_id',
+        'calculation_mode',
         'earn_rate_amount',
         'earn_rate_points',
         'redeem_rate_amount',
     ];
 
     protected $casts = [
+        'calculation_mode' => 'string',
         'earn_rate_amount' => 'integer',
         'earn_rate_points' => 'integer',
         'redeem_rate_amount' => 'integer',

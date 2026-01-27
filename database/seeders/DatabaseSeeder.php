@@ -233,6 +233,7 @@ class DatabaseSeeder extends Seeder
         ]);
 
         LoyaltyRule::updateOrCreate(['outlet_id' => $outletA->id], [
+            'calculation_mode' => 'per_amount',
             'earn_rate_amount' => 10000,
             'earn_rate_points' => 1,
         ]);

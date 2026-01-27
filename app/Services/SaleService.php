@@ -193,8 +193,26 @@ class SaleService
             return;
         }
 
-        $points = intdiv((int) $grandTotal, max(1, $rule->earn_rate_amount)) * $rule->earn_rate_points;
-        Customer::where('id', $customerId)->increment('points_balance', $points);
+        $mode = $rule->calculation_mode ?? 'per_amount';
+        $earnRateAmount = max(1, (int) $rule->earn_rate_amount);
+        $earnRatePoints = max(0, (int) $rule->earn_rate_points);
+
+        if ($earnRatePoints <= 0) {
+            return;
+        }
+
+        $points = 0;
+
+        if ($mode === 'per_transaction') {
+            $points = $grandTotal >= $earnRateAmount ? $earnRatePoints : 0;
+        } else {
+            // Default: per nominal belanja (kelipatan earn_rate_amount).
+            $points = intdiv((int) floor($grandTotal), $earnRateAmount) * $earnRatePoints;
+        }
+
+        if ($points > 0) {
+            Customer::where('id', $customerId)->increment('points_balance', $points);
+        }
     }
 
     protected function currentShiftId(int $outletId): ?int
