@@ -2,11 +2,14 @@
 
 namespace App\Exports;
 
-use App\Models\Sale;
-use Maatwebsite\Excel\Concerns\FromCollection;
-use Maatwebsite\Excel\Concerns\WithHeadings;
+use App\Exports\Sheets\SalesByCashierSheet;
+use App\Exports\Sheets\SalesByCategorySheet;
+use App\Exports\Sheets\SalesByProductSheet;
+use App\Exports\Sheets\SalesSummarySheet;
+use App\Exports\Sheets\SalesTransactionsSheet;
+use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 
-class SalesReportExport implements FromCollection, WithHeadings
+class SalesReportExport implements WithMultipleSheets
 {
     public function __construct(
         protected int $outletId,
@@ -15,38 +18,14 @@ class SalesReportExport implements FromCollection, WithHeadings
     ) {
     }
 
-    public function collection()
-    {
-        return Sale::where('outlet_id', $this->outletId)
-            ->whereBetween('created_at', [$this->from.' 00:00:00', $this->to.' 23:59:59'])
-            ->where('status', 'paid')
-            ->with('customer')
-            ->get()
-            ->map(function (Sale $sale) {
-                return [
-                    'receipt_number' => $sale->receipt_number,
-                    'date' => $sale->created_at->toDateTimeString(),
-                    'customer' => $sale->customer?->name,
-                    'subtotal' => $sale->subtotal,
-                    'discount' => $sale->discount_total,
-                    'tax' => $sale->tax_total,
-                    'service' => $sale->service_total,
-                    'grand_total' => $sale->grand_total,
-                ];
-            });
-    }
-
-    public function headings(): array
+    public function sheets(): array
     {
         return [
-            'Receipt',
-            'Date',
-            'Customer',
-            'Subtotal',
-            'Discount',
-            'Tax',
-            'Service',
-            'Grand Total',
+            new SalesSummarySheet($this->outletId, $this->from, $this->to),
+            new SalesTransactionsSheet($this->outletId, $this->from, $this->to),
+            new SalesByProductSheet($this->outletId, $this->from, $this->to),
+            new SalesByCategorySheet($this->outletId, $this->from, $this->to),
+            new SalesByCashierSheet($this->outletId, $this->from, $this->to),
         ];
     }
 }

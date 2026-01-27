@@ -7,6 +7,8 @@ use App\Models\CouponRedemption;
 use App\Models\Customer;
 use App\Models\Outlet;
 use App\Models\Payment;
+use App\Models\Product;
+use App\Models\ProductVariant;
 use App\Models\Sale;
 use App\Models\SaleItem;
 use App\Support\AuditLogger;
@@ -56,6 +58,11 @@ class SaleService
             $couponDiscount = $this->calculateCouponDiscount($coupon, $items, $transactionDiscount, $outlet);
             $totals = $this->calculator->calculate($items, $outlet, $transactionDiscount, $couponDiscount);
 
+            $productIds = collect($items)->pluck('product_id')->unique()->values();
+            $variantIds = collect($items)->pluck('product_variant_id')->filter()->unique()->values();
+            $products = Product::whereIn('id', $productIds)->get()->keyBy('id');
+            $variants = ProductVariant::whereIn('id', $variantIds)->get()->keyBy('id');
+
             $sale = Sale::create([
                 'outlet_id' => $outlet->id,
                 'receipt_number' => $this->nextReceiptNumber($outlet),
@@ -78,6 +85,10 @@ class SaleService
             foreach ($items as $item) {
                 $gramsPerUnit = (float) ($item['grams_per_unit'] ?? 0);
                 $gramsTotal = $gramsPerUnit * $item['qty'];
+                $variant = $item['product_variant_id'] ? $variants->get($item['product_variant_id']) : null;
+                $product = $products->get($item['product_id']);
+                $costPrice = (float) ($variant?->cost_price ?? $product?->cost_price ?? 0);
+                $cogsTotal = $costPrice * $item['qty'];
 
                 SaleItem::create([
                     'sale_id' => $sale->id,
@@ -89,6 +100,8 @@ class SaleService
                     'grams_per_unit' => $gramsPerUnit,
                     'grams_total' => $gramsTotal,
                     'unit_price' => $item['unit_price'],
+                    'cost_price_snapshot' => $costPrice,
+                    'cogs_total' => $cogsTotal,
                     'discount_amount' => $item['discount_amount'] ?? 0,
                     'tax_amount' => 0,
                     'line_total' => $item['unit_price'] * $item['qty'] - ($item['discount_amount'] ?? 0),
