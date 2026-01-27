@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Coupon;
 use App\Models\Customer;
 use App\Models\Product;
 use App\Models\ProductVariant;
@@ -34,14 +33,17 @@ class PosController extends Controller
 
         $cart = $this->getCart();
         $outlet = OutletContext::outlet();
-        $coupon = $cart['coupon_id'] ? Coupon::find($cart['coupon_id']) : null;
-        $cart['coupon_discount'] = $this->saleService->calculateCouponDiscount(
-            $coupon,
-            $cart['items'],
-            $cart['transaction_discount'],
-            $outlet
-        );
-        $totals = $this->calculator->calculate($cart['items'], $outlet, $cart['transaction_discount'], $cart['coupon_discount']);
+
+        // Diskon dan kupon dinonaktifkan di POS.
+        $cart['transaction_discount'] = 0;
+        $cart['coupon_id'] = null;
+        $cart['coupon_discount'] = 0;
+        foreach ($cart['items'] as $key => $item) {
+            $cart['items'][$key]['discount_amount'] = 0;
+        }
+        $this->storeCart($cart);
+
+        $totals = $this->calculator->calculate($cart['items'], $outlet, 0, 0);
 
         return view('pos.index', compact('products', 'customers', 'cart', 'totals'));
     }
@@ -104,7 +106,6 @@ class PosController extends Controller
         $data = $request->validate([
             'key' => ['required', 'string'],
             'qty' => ['required', 'integer', 'min:1'],
-            'discount_amount' => ['nullable', 'numeric', 'min:0'],
             'note' => ['nullable', 'string'],
         ]);
 
@@ -114,7 +115,7 @@ class PosController extends Controller
         }
 
         $cart['items'][$data['key']]['qty'] = $data['qty'];
-        $cart['items'][$data['key']]['discount_amount'] = $data['discount_amount'] ?? 0;
+        $cart['items'][$data['key']]['discount_amount'] = 0;
         $cart['items'][$data['key']]['note'] = $data['note'] ?? null;
 
         $this->storeCart($cart);
@@ -135,38 +136,11 @@ class PosController extends Controller
         return redirect()->route('pos.index');
     }
 
-    public function applyDiscount(Request $request)
-    {
-        $data = $request->validate([
-            'transaction_discount' => ['required', 'numeric', 'min:0'],
-        ]);
-
-        $cart = $this->getCart();
-        $cart['transaction_discount'] = $data['transaction_discount'];
-        $this->storeCart($cart);
-
-        return redirect()->route('pos.index');
-    }
-
     public function applyCoupon(Request $request)
     {
-        $data = $request->validate([
-            'code' => ['required', 'string'],
-        ]);
-
-        $coupon = Coupon::where('code', $data['code'])
-            ->where('is_active', true)
-            ->where(function ($query) {
-                $query->whereNull('outlet_id')
-                    ->orWhere('outlet_id', OutletContext::id());
-            })
-            ->first();
-
         $cart = $this->getCart();
-        if ($coupon) {
-            $cart['coupon_id'] = $coupon->id;
-            $cart['coupon_discount'] = 0;
-        }
+        $cart['coupon_id'] = null;
+        $cart['coupon_discount'] = 0;
         $this->storeCart($cart);
 
         return redirect()->route('pos.index');
@@ -176,14 +150,13 @@ class PosController extends Controller
     {
         $cart = $this->getCart();
         $outlet = OutletContext::outlet();
-        $coupon = $cart['coupon_id'] ? Coupon::find($cart['coupon_id']) : null;
 
         $this->saleService->createDraft(
             $outlet,
             array_values($cart['items']),
             $cart['customer_id'],
-            $cart['transaction_discount'],
-            $coupon
+            0,
+            null
         );
 
         $this->clearCart();
@@ -195,7 +168,6 @@ class PosController extends Controller
     {
         $data = $request->validate([
             'payment_method' => ['required', 'in:cash,card,qris,ewallet,transfer'],
-            'payment_amount' => ['required', 'numeric', 'min:0'],
             'cash_received' => ['nullable', 'numeric', 'min:0'],
             'payment_reference' => ['nullable', 'string'],
             'customer_id' => ['nullable', 'exists:customers,id'],
@@ -204,13 +176,13 @@ class PosController extends Controller
         $cart = $this->getCart();
         $cart['customer_id'] = $data['customer_id'] ?? $cart['customer_id'];
         $outlet = OutletContext::outlet();
-        $coupon = $cart['coupon_id'] ? Coupon::find($cart['coupon_id']) : null;
 
-        $totals = $this->calculator->calculate($cart['items'], $outlet, $cart['transaction_discount'], $cart['coupon_discount']);
+        $totals = $this->calculator->calculate($cart['items'], $outlet, 0, 0);
+        $paymentAmount = (float) $totals['grand_total'];
         $change = 0;
         if ($data['payment_method'] === 'cash') {
-            $received = $data['cash_received'] ?? $data['payment_amount'];
-            $change = max(0, $received - $totals['grand_total']);
+            $received = (float) ($data['cash_received'] ?? 0);
+            $change = max(0, $received - $paymentAmount);
         }
 
         $sale = $this->saleService->checkout(
@@ -218,13 +190,13 @@ class PosController extends Controller
             array_values($cart['items']),
             [[
                 'method' => $data['payment_method'],
-                'amount' => $data['payment_amount'],
+                'amount' => $paymentAmount,
                 'reference' => $data['payment_reference'] ?? null,
                 'change_amount' => $change,
             ]],
             $cart['customer_id'],
-            $cart['transaction_discount'],
-            $coupon
+            0,
+            null
         );
 
         $this->clearCart();

@@ -31,7 +31,6 @@ Route::middleware('auth')->group(function () {
         Route::post('/pos/add', [PosController::class, 'addItem'])->name('pos.add');
         Route::post('/pos/update', [PosController::class, 'updateItem'])->name('pos.update');
         Route::post('/pos/remove', [PosController::class, 'removeItem'])->name('pos.remove');
-        Route::post('/pos/discount', [PosController::class, 'applyDiscount'])->name('pos.discount');
         Route::post('/pos/coupon', [PosController::class, 'applyCoupon'])->name('pos.coupon');
         Route::post('/pos/hold', [PosController::class, 'hold'])->name('pos.hold');
         Route::post('/pos/checkout', [PosController::class, 'checkout'])->name('pos.checkout');
