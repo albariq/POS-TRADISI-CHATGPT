@@ -27,7 +27,7 @@ class ProductPricingDllBulk extends Page implements HasForms
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-adjustments-horizontal';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Pengaturan';
+    protected static string|UnitEnum|null $navigationGroup = 'Tabel Harga';
 
     protected static ?string $navigationLabel = 'Tabel DLL';
 

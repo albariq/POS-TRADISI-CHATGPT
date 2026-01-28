@@ -25,7 +25,7 @@ class ProductPricingExtraResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-cog-6-tooth';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Pengaturan';
+    protected static string|UnitEnum|null $navigationGroup = 'Tabel Harga';
 
     protected static ?string $navigationLabel = 'Setting Harga';
 

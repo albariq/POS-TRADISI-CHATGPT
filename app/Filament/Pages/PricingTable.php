@@ -15,7 +15,7 @@ class PricingTable extends Page
 {
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-table-cells';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Pengaturan';
+    protected static string|UnitEnum|null $navigationGroup = 'Tabel Harga';
 
     protected static ?string $navigationLabel = 'Tabel Harga';
 
