@@ -38,6 +38,16 @@ class Product extends Model
         return $this->hasMany(ProductVariant::class);
     }
 
+    public function pricingExtra()
+    {
+        return $this->hasOne(ProductPricingExtra::class);
+    }
+
+    public function pricingDll()
+    {
+        return $this->hasOne(ProductPricingDll::class);
+    }
+
     public function tags()
     {
         return $this->belongsToMany(Tag::class);

@@ -1,0 +1,33 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create('product_pricing_extras', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('product_id')->constrained()->cascadeOnDelete();
+            $table->decimal('modal_1kg', 12, 2)->nullable();
+            $table->decimal('modal_1gr', 12, 2)->nullable();
+            $table->decimal('modal_100', 12, 2)->nullable();
+            $table->decimal('modal_200', 12, 2)->nullable();
+            $table->decimal('modal_500', 12, 2)->nullable();
+            $table->decimal('dll_100', 12, 2)->nullable();
+            $table->decimal('dll_200', 12, 2)->nullable();
+            $table->decimal('dll_500', 12, 2)->nullable();
+            $table->decimal('dll_1000', 12, 2)->nullable();
+            $table->timestamps();
+
+            $table->unique('product_id');
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('product_pricing_extras');
+    }
+};

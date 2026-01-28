@@ -8,6 +8,8 @@ use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\OutletSelectionController;
 use App\Http\Controllers\PosController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\PricingSettingController;
+use App\Http\Controllers\PricingTableController;
 use App\Http\Controllers\ReceiptController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ShiftController;
@@ -54,6 +56,9 @@ Route::middleware('auth')->group(function () {
         Route::resource('products', ProductController::class)->except(['destroy']);
         Route::resource('categories', CategoryController::class)->only(['index', 'store', 'update']);
         Route::resource('tags', TagController::class)->only(['index', 'store', 'update']);
+
+        Route::get('/pricing-table', [PricingTableController::class, 'index'])->name('pricing.index');
+        Route::resource('pricing-settings', PricingSettingController::class)->except(['show']);
 
         Route::get('/inventory', [InventoryController::class, 'index'])->name('inventory.index');
         Route::post('/inventory/adjust', [InventoryController::class, 'adjust'])->name('inventory.adjust');

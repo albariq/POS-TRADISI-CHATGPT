@@ -19,6 +19,7 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Role;
 use App\Models\Payment;
+use App\Models\PricingSetting;
 use Illuminate\Support\Str;
 
 class DatabaseSeeder extends Seeder
@@ -47,6 +48,28 @@ class DatabaseSeeder extends Seeder
             'service_charge_rate' => 0,
             'rounding_unit' => 1,
         ]);
+
+        $pricingDefaults = [
+            100 => ['packaging_cost' => 1180, 'markup' => 0.55],
+            200 => ['packaging_cost' => 1279, 'markup' => 0.50],
+            500 => ['packaging_cost' => 1940, 'markup' => 0.43],
+            1000 => ['packaging_cost' => 2530, 'markup' => 0.37],
+        ];
+
+        foreach ([$outletA, $outletB] as $outlet) {
+            foreach ($pricingDefaults as $grams => $data) {
+                PricingSetting::updateOrCreate(
+                    [
+                        'outlet_id' => $outlet->id,
+                        'grams' => $grams,
+                    ],
+                    [
+                        'packaging_cost' => $data['packaging_cost'],
+                        'markup' => $data['markup'],
+                    ]
+                );
+            }
+        }
 
         $owner = User::updateOrCreate(['email' => 'owner@demo.test'], [
             'name' => 'Owner',
