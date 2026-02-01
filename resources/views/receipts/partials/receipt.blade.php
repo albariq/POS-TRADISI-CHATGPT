@@ -47,6 +47,6 @@
     </div>
 
     <div class="text-center text-xs mt-4">
-        Thank you
+        Terimakasih atas kunjungan Anda!
     </div>
 </div>

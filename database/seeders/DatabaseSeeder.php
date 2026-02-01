@@ -32,10 +32,10 @@ class DatabaseSeeder extends Seeder
         $cashierRole = Role::firstOrCreate(['name' => 'CASHIER']);
 
         $outletA = Outlet::updateOrCreate(['code' => 'JKT01'], [
-            'name' => 'Outlet Jakarta',
-            'phone' => '021-555-0001',
-            'address' => 'Jl. Sudirman No. 1, Jakarta',
-            'tax_rate' => 11.00,
+            'name' => 'Outlet Maskarebet',
+            'phone' => '0823-7166-4523',
+            'address' => 'Jl. H Ahmad Dahlan HY',
+            'tax_rate' => 0,
             'service_charge_rate' => 0,
             'rounding_unit' => 1,
         ]);
@@ -44,7 +44,7 @@ class DatabaseSeeder extends Seeder
             'name' => 'Outlet Bandung',
             'phone' => '022-555-0002',
             'address' => 'Jl. Asia Afrika No. 2, Bandung',
-            'tax_rate' => 11.00,
+            'tax_rate' => 0,
             'service_charge_rate' => 0,
             'rounding_unit' => 1,
         ]);

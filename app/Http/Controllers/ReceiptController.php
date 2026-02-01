@@ -16,7 +16,8 @@ class ReceiptController extends Controller
             abort(403);
         }
         $sale->load('items', 'payments', 'customer', 'outlet');
-        $message = urlencode("Receipt ".$sale->receipt_number."\nTotal: ".$sale->grand_total."\nLink: ".route('receipts.public', $sale->public_token));
+        $totalFormatted = number_format((float) $sale->grand_total, 0, ',', '.');
+        $message = urlencode("Receipt ".$sale->receipt_number."\nTotal: ".$totalFormatted."\nLink: ".route('receipts.public', $sale->public_token));
         $waLink = "https://wa.me/?text=".$message;
 
         return view('receipts.show', compact('sale', 'waLink'));
