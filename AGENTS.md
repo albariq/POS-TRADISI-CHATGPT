@@ -4,8 +4,9 @@ Panduan singkat untuk agent (Codex) saat membantu di repo ini.
 
 ## Ringkasan Proyek
 - POS Tradisi adalah web app POS retail multi-outlet berbasis Laravel 12 + MySQL.
-- UI: Blade + Tailwind (via CDN di repo ini).
-- Fitur utama: outlet scoping, role-based access, inventory, sales, shift, receipt, report.
+- Admin panel: Filament.
+- UI: Blade + Tailwind (CDN untuk POS), Vite + Tailwind untuk asset build.
+- Fitur utama: outlet scoping, role-based access, inventory, sales, shift, receipt, report, cashflow, pricing.
 
 ## Tujuan Umum Saat Membantu
 - Jaga perilaku bisnis tetap konsisten (multi-outlet, role/permission, stok, kas).
@@ -20,9 +21,11 @@ Panduan singkat untuk agent (Codex) saat membantu di repo ini.
 
 ## Konvensi Teknis
 - Backend: Laravel 12, MySQL 8+, Spatie Permission.
-- Frontend: Blade + Tailwind CDN (hindari build step tambahan jika tidak diminta).
+- Admin panel: Filament.
+- Frontend: Blade + Tailwind CDN (hindari build step tambahan jika tidak diminta), Vite + Tailwind untuk asset build.
 - Bahasa default: Indonesia (lihat `APP_LOCALE` di `.env`).
 - Konfigurasi pricing table di DB `pricing_settings` (per outlet + gram).
+- Markup & biaya kemasan ada di `config/pricing.php`.
 
 ## Alur Kerja Agent
 1) Pahami konteks file yang sedang dikerjakan + dampak bisnisnya.
@@ -48,6 +51,7 @@ Panduan singkat untuk agent (Codex) saat membantu di repo ini.
 - Jangan hapus atau menonaktifkan audit trail (shift, kas, stok).
 - Jangan ubah aturan rounding outlet secara default.
 - Jangan membiarkan transaksi sukses tanpa update stok/shift yang sesuai.
+- Jangan jalankan perintah destruktif (mis. `migrate:fresh`, `db:wipe`) di server produksi.
 
 ## Testing / Verifikasi (opsional)
 - `php artisan optimize:clear`

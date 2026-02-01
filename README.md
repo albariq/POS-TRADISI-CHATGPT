@@ -1,25 +1,37 @@
 # POS Tradisi (Multi-Outlet Retail POS)
 
-A mobile-first retail POS web app built with Laravel + MySQL. It supports multi-outlet scoping, role-based access, inventory, sales, shifts, receipts, and reporting.
+POS Tradisi adalah web app POS retail multi-outlet berbasis Laravel 12 + MySQL. Fokus utama: POS kasir, stok, shift, laporan, dan admin panel.
 
 ## Tech Stack
 
-- Backend: Laravel 12, MySQL 8+, Spatie Permission
-- Frontend: Blade + Tailwind (via CDN for speed in this repo)
-- Exports: Excel + PDF
+- Backend: Laravel 12, PHP 8.2+, MySQL 8+, Spatie Permission
+- Admin panel: Filament
+- Frontend: Blade + Tailwind (CDN untuk tampilan POS), Vite + Tailwind untuk asset build
+- Export: Excel + PDF (DomPDF)
 
-For production at scale, consider switching Tailwind from CDN to a compiled setup (for example via Vite).
+## Fitur Utama
 
-## Quick Start
+- Multi-outlet scoping + pemilihan outlet
+- Role-based access: OWNER, ADMIN, MANAGER, CASHIER
+- POS: cart, hold transaksi, diskon/kupon, pilihan metode pembayaran (cash, card, qris, ewallet, transfer)
+- Produk dengan varian (berat/gram), kategori, tag
+- Inventory & stock movement, min stock alert
+- Customer + loyalty + kupon
+- Shift kasir: buka/tutup shift + cash movement
+- Receipt 80mm + public receipt link + email receipt
+- Laporan penjualan & inventory + ekspor Excel/PDF
+- Modul admin (Filament): dashboard kas, arus kas, laba rugi, pricing table, pricing settings
+
+## Quick Start (Local)
 
 ### 1. Requirements
 
-- PHP 8.2+ and Composer
+- PHP 8.2+ dan Composer
 - MySQL 8+
 
 ### 2. Installation
 
-From the project root:
+Dari root project:
 
 ```powershell
 copy .env.example .env
@@ -27,59 +39,66 @@ composer install
 php artisan key:generate
 ```
 
-Then edit `.env` and set your database credentials (for example: `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`).
+Atur kredensial database di `.env` (contoh: `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`).
 
-Run migrations and seeders:
+Jalankan migrasi dan seeder (khusus lokal/dev):
 
 ```powershell
 php artisan migrate --seed
 ```
 
-Start the local server:
+Jalankan server lokal:
 
 ```powershell
 php artisan serve
 ```
 
+Opsional jika perlu asset Vite:
+
+```powershell
+npm install
+npm run build
+```
+
 ## Demo Accounts
 
-Use the following accounts after running `migrate --seed`:
+Akun demo setelah `migrate --seed`:
 
 - Owner: `owner@demo.test` / `password`
 - Admin: `admin@demo.test` / `password`
 - Manager: `manager@demo.test` / `password`
 - Cashier: `cashier@demo.test` / `password`
 
-## Key Features
+## URL Penting
 
-- Multi-outlet scoping with outlet selection
-- Role-based access: OWNER, ADMIN, MANAGER, CASHIER
-- Products and variants, inventory movements, POS checkout
-- Shift open/close and cash movements
-- Receipt print (80mm), public receipt link, email and WhatsApp share
-- Reports with Excel/PDF export
+- Login: `/login`
+- POS: `/pos`
+- Admin (Filament): `/admin`
+- Public receipt: `/receipt/{token}`
 
-## Configuration Notes
+## Catatan Konfigurasi
 
-- Default locale is Indonesian (`id`). Change it via `APP_LOCALE` in `.env`.
-- Rounding is configured per outlet via `rounding_unit`.
-- Pricing table config lives in DB table `pricing_settings` (per outlet + grams).
+- Default locale Indonesia (`APP_LOCALE=id`).
+- Rounding per outlet via `rounding_unit`.
+- Pricing table per outlet + gram di tabel `pricing_settings`.
+- Markup & biaya kemasan ada di `config/pricing.php`.
+- Email receipt membutuhkan konfigurasi mail di `.env`.
 
 ## Useful Commands
 
-Common maintenance commands:
-
 ```powershell
 php artisan optimize:clear
-php artisan migrate --force
+php artisan migrate --seed
 ```
 
-If you are using Laragon, you can also run the app via Laragon's web server and open the project URL directly instead of using `php artisan serve`.
+Jika memakai Laragon, bisa akses via web server Laragon tanpa `php artisan serve`.
 
-## Commands Server
+## Commands Server (Catatan Internal)
 
+```
 /usr/bin/php8.4 /usr/local/bin/composer install --no-dev --prefer-dist --optimize-autoloader
 /usr/bin/php8.4 artisan migrate --force
 /usr/bin/php8.4 artisan optimize:clear
 /usr/bin/php8.4 artisan migrate:fresh --seed
 git pull origin main
+```
