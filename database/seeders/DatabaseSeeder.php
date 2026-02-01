@@ -116,10 +116,10 @@ class DatabaseSeeder extends Seeder
             ['RT-200', 'Robusta Toraja 200Gr', 200, 'Rp18.479', 'Rp38.000'],
             ['RT-500', 'Robusta Toraja 500Gr', 500, 'Rp44.940', 'Rp88.000'],
             ['RT-1000', 'Robusta Toraja 1Kg', 1000, 'Rp88.530', 'Rp167.000'],
-            ['RTP-100', 'Robusta Toraja Premium 100Gr', 100, 'Rp15.880', 'Rp29.000'],
-            ['RTP-200', 'Robusta Toraja Premium 200Gr', 200, 'Rp30.679', 'Rp55.000'],
-            ['RTP-500', 'Robusta Toraja Premium 500Gr', 500, 'Rp75.440', 'Rp129.000'],
-            ['RTP-1000', 'Robusta Toraja Premium 1Kg', 1000, 'Rp149.530', 'Rp246.000'],
+            ['RTOP-100', 'Robusta Toraja Premium 100Gr', 100, 'Rp15.880', 'Rp29.000'],
+            ['RTOP-200', 'Robusta Toraja Premium 200Gr', 200, 'Rp30.679', 'Rp55.000'],
+            ['RTOP-500', 'Robusta Toraja Premium 500Gr', 500, 'Rp75.440', 'Rp129.000'],
+            ['RTOP-1000', 'Robusta Toraja Premium 1Kg', 1000, 'Rp149.530', 'Rp246.000'],
             ['RL-100', 'Robusta Lampung 100Gr', 100, 'Rp0', 'Rp0'],
             ['RL-200', 'Robusta Lampung 200Gr', 200, 'Rp0', 'Rp0'],
             ['RL-500', 'Robusta Lampung 500Gr', 500, 'Rp0', 'Rp0'],
@@ -196,35 +196,69 @@ class DatabaseSeeder extends Seeder
         }
 
         $hasProductOutlet = Schema::hasColumn('products', 'outlet_id');
-        foreach ($products as [$sku, $name, $grams, $hpp, $price]) {
-            $costPrice = (float) str_replace(['Rp', '.', ' '], '', $hpp);
-            $basePrice = (float) str_replace(['Rp', '.', ' '], '', $price);
-            $categoryId = $this->resolveCategoryId($sku, $categoryIds);
+        $hasProductOutlets = Schema::hasTable('product_outlets');
 
-            $productMatch = [
+        $groups = [];
+        foreach ($products as [$sku, $name, $grams, $hpp, $price]) {
+            $baseSku = $this->extractBaseSku($sku);
+            $baseName = $this->stripWeightSuffix($name);
+            $groups[$baseSku]['name'] = $baseName;
+            $groups[$baseSku]['category_id'] = $this->resolveCategoryId($baseSku, $categoryIds);
+            $groups[$baseSku]['variants'][] = [
                 'sku' => $sku,
+                'name' => $this->formatVariantName($grams),
+                'grams' => $grams,
+                'price' => $this->toNumber($price),
+                'cost' => $this->toNumber($hpp),
+            ];
+        }
+
+        foreach ($groups as $baseSku => $group) {
+            $productMatch = [
+                'sku' => $baseSku,
             ];
             if ($hasProductOutlet) {
                 $productMatch['outlet_id'] = $outlet->id;
             }
 
             $productValues = [
-                'category_id' => $categoryId,
-                'name' => $name,
-                'description' => $grams ? $grams.' gr' : null,
-                'base_price' => $basePrice,
-                'cost_price' => $costPrice,
-                'has_variants' => false,
+                'category_id' => $group['category_id'],
+                'name' => $group['name'],
+                'description' => null,
+                'base_price' => 0,
+                'cost_price' => null,
+                'has_variants' => count($group['variants']) > 0,
                 'is_active' => true,
             ];
             if ($hasProductOutlet) {
                 $productValues['outlet_id'] = $outlet->id;
             }
 
-            Product::updateOrCreate(
-                $productMatch,
-                $productValues
-            );
+            $product = Product::updateOrCreate($productMatch, $productValues);
+
+            if ($hasProductOutlets) {
+                $product->outlets()->syncWithoutDetaching([$outlet->id]);
+            }
+
+            foreach ($group['variants'] as $variant) {
+                if (! $variant['grams']) {
+                    continue;
+                }
+
+                $product->variants()->updateOrCreate(
+                    [
+                        'product_id' => $product->id,
+                        'sku' => $variant['sku'],
+                    ],
+                    [
+                        'name' => $variant['name'],
+                        'price_override' => $variant['price'],
+                        'cost_price' => $variant['cost'],
+                        'grams_per_unit' => $variant['grams'],
+                        'is_active' => true,
+                    ]
+                );
+            }
         }
     }
 
@@ -249,5 +283,40 @@ class DatabaseSeeder extends Seeder
         }
 
         return null;
+    }
+
+    private function extractBaseSku(string $sku): string
+    {
+        if (str_contains($sku, '-')) {
+            return explode('-', $sku)[0];
+        }
+
+        if (preg_match('/^([A-Z]+)[0-9]+$/i', $sku, $matches)) {
+            return strtoupper($matches[1]);
+        }
+
+        return strtoupper($sku);
+    }
+
+    private function stripWeightSuffix(string $name): string
+    {
+        $cleaned = preg_replace('/\s*(100|200|500|1000)\s*Gr\b/i', '', $name);
+        $cleaned = preg_replace('/\s*1\s*Kg\b/i', '', $cleaned);
+
+        return trim($cleaned ?? $name);
+    }
+
+    private function formatVariantName(?int $grams): string
+    {
+        if (! $grams) {
+            return 'Varian';
+        }
+
+        return $grams.' Gr';
+    }
+
+    private function toNumber(string $value): float
+    {
+        return (float) str_replace(['Rp', '.', ' '], '', $value);
     }
 }

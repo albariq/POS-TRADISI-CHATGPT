@@ -59,12 +59,6 @@ class ProductResource extends Resource
                         Forms\Components\TextInput::make('name')
                             ->required()
                             ->maxLength(255),
-                        Forms\Components\TextInput::make('base_price')
-                            ->numeric()
-                            ->required(),
-                        Forms\Components\TextInput::make('cost_price')
-                            ->numeric()
-                            ->nullable(),
                         Forms\Components\TextInput::make('barcode')
                             ->maxLength(255)
                             ->nullable(),
@@ -165,9 +159,6 @@ class ProductResource extends Resource
                 Tables\Columns\TextColumn::make('category.name')
                     ->label('Kategori')
                     ->toggleable(),
-                Tables\Columns\TextColumn::make('base_price')
-                    ->money('IDR', true)
-                    ->sortable(),
                 Tables\Columns\IconColumn::make('is_active')
                     ->boolean(),
             ])
