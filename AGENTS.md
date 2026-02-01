@@ -11,6 +11,12 @@ Panduan singkat untuk agent (Codex) saat membantu di repo ini.
 - Jaga perilaku bisnis tetap konsisten (multi-outlet, role/permission, stok, kas).
 - Prioritaskan perubahan yang aman, mudah diuji, dan tidak merusak alur kasir.
 - Hindari perubahan besar tanpa persetujuan eksplisit.
+- Ingat: aplikasi sudah ter-deploy, jadi perubahan harus ekstra hati-hati.
+
+## Lingkungan Produksi (Wajib)
+- Jangan pernah menjalankan `php artisan migrate:fresh`, `db:wipe`, atau perintah yang menghapus data.
+- Hindari perubahan yang menyentuh data produksi tanpa instruksi eksplisit.
+- Jika butuh reset/seed, batasi hanya untuk DB lokal/dev dan pastikan izin dulu.
 
 ## Konvensi Teknis
 - Backend: Laravel 12, MySQL 8+, Spatie Permission.
@@ -45,7 +51,7 @@ Panduan singkat untuk agent (Codex) saat membantu di repo ini.
 
 ## Testing / Verifikasi (opsional)
 - `php artisan optimize:clear`
-- `php artisan migrate --seed` (jika perubahan DB lokal)
+- `php artisan migrate --seed` (hanya untuk DB lokal/dev)
 - `php artisan serve` (atau via Laragon)
 
 ## File Penting
