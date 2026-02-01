@@ -3,7 +3,6 @@
 namespace App\Filament\Pages;
 
 use App\Models\Product;
-use App\Models\ProductVariant;
 use App\Services\StockService;
 use App\Support\OutletContext;
 use BackedEnum;
@@ -56,15 +55,6 @@ class StockAdjustment extends Page implements HasForms
                             ->searchable()
                             ->live()
                             ->required(),
-                        Select::make('product_variant_id')
-                            ->label('Variant')
-                            ->options(fn (Get $get): array => ProductVariant::where('product_id', $get('product_id'))
-                                ->orderBy('name')
-                                ->pluck('name', 'id')
-                                ->toArray())
-                            ->searchable()
-                            ->nullable()
-                            ->disabled(fn (Get $get): bool => blank($get('product_id'))),
                         Select::make('type')
                             ->label('Tipe')
                             ->options([
@@ -91,11 +81,7 @@ class StockAdjustment extends Page implements HasForms
         $data = $this->form->getState();
 
         $product = Product::forOutlet(OutletContext::id())->findOrFail($data['product_id']);
-        $variantId = $data['product_variant_id'] ?? null;
-
-        if ($variantId) {
-            ProductVariant::where('product_id', $product->id)->findOrFail($variantId);
-        }
+        $variantId = null;
 
         $qty = (float) $data['qty_grams'];
         $delta = $data['type'] === 'out' ? -1 * abs($qty) : abs($qty);
