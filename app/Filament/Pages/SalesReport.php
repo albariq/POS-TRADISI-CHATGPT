@@ -5,6 +5,7 @@ namespace App\Filament\Pages;
 use App\Models\Outlet;
 use App\Models\Sale;
 use App\Models\SaleItem;
+use App\Filament\Pages\SalesReport\Widgets\SalesSummary;
 use App\Support\OutletContext;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
@@ -31,6 +32,20 @@ class SalesReport extends Page implements HasTable
     public function getView(): string
     {
         return 'filament.pages.sales-report';
+    }
+
+    protected function getHeaderWidgets(): array
+    {
+        return [
+            SalesSummary::class,
+        ];
+    }
+
+    public function getWidgetData(): array
+    {
+        return [
+            'summary' => $this->summary,
+        ];
     }
 
     public function getSummaryProperty(): array

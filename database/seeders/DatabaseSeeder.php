@@ -52,7 +52,7 @@ class DatabaseSeeder extends Seeder
         ]);
         $cashier->assignRole($cashierRole);
 
-        $outlet = Outlet::updateOrCreate(['code' => 'JKT01'], [
+        $outlet = Outlet::updateOrCreate(['code' => 'PLG01'], [
             'name' => 'Outlet Maskarebet',
             'phone' => '0823-7166-4523',
             'address' => 'Jl. H Ahmad Dahlan HY',
