@@ -76,6 +76,60 @@ Akun demo setelah `migrate --seed`:
 - Admin (Filament): `/admin`
 - Public receipt: `/receipt/{token}`
 
+## Tutorial Role Kasir (CASHIER)
+
+Panduan singkat alur kerja kasir sehari-hari.
+
+### 1. Login & Pilih Outlet
+
+1. Buka halaman login `/login`.
+2. Masuk dengan akun kasir yang telah disediakan.
+3. Pilih outlet aktif (jika tersedia lebih dari satu).
+
+### 2. Buka Shift
+
+1. Buka menu **Shift** di navbar.
+2. Klik **Buka Shift**.
+3. Isi **Saldo Awal Kas** sesuai uang fisik di laci kas.
+4. Simpan. Status shift berubah menjadi **Aktif**.
+
+### 3. Buat Transaksi Penjualan
+
+1. Cari produk (nama/scan barcode) lalu tambahkan ke cart.
+2. Atur jumlah, varian, atau catatan item jika diperlukan.
+3. Terapkan diskon/kupon jika ada.
+4. Pilih metode pembayaran: **Cash**, **Card**, **QRIS**, **E-Wallet**, atau **Transfer**.
+5. Konfirmasi pembayaran. Sistem akan:
+    - Mengurangi stok sesuai item terjual.
+    - Mencatat transaksi dan pembayaran.
+    - Menyediakan struk 80mm dan link receipt.
+
+### 4. Hold / Lanjutkan Transaksi
+
+1. Jika pelanggan belum siap bayar, gunakan **Tahan / Parkir** di POS.
+2. Transaksi tersimpan sebagai **Hold** (draft).
+3. Lanjutkan transaksi dari panel **Daftar Hold** di halaman POS:
+    - Kasir melihat hold miliknya sendiri.
+    - Owner/Admin/Manager dapat melihat semua hold outlet.
+
+### 5. Cash Movement (Opsional)
+
+Di halaman **Shift** (`/shifts`), gunakan fitur **Cash In/Out** untuk mencatat:
+
+- Penambahan kas (mis. modal tambahan).
+- Pengeluaran kas kecil (mis. beli plastik/air).
+
+### 6. Tutup Shift
+
+1. Setelah selesai, buka halaman **Shift** (`/shifts`) lalu klik **Tutup Shift**.
+2. Masukkan **Saldo Akhir Kas** berdasarkan uang fisik.
+3. Sistem akan menghitung selisih dan menyimpan laporan shift.
+
+### 7. Cek Receipt
+
+Struk bisa dicetak langsung atau dibuka via link publik:
+`/receipt/{token}`.
+
 ## Catatan Konfigurasi
 
 - Default locale Indonesia (`APP_LOCALE=id`).

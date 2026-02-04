@@ -47,9 +47,17 @@ Route::middleware('auth')->group(function () {
         Route::post('/pos/remove', [PosController::class, 'removeItem'])->name('pos.remove');
         Route::post('/pos/coupon', [PosController::class, 'applyCoupon'])->name('pos.coupon');
         Route::post('/pos/hold', [PosController::class, 'hold'])->name('pos.hold');
+        Route::post('/pos/hold/{sale}/resume', [PosController::class, 'resumeHold'])->name('pos.hold.resume');
         Route::post('/pos/checkout', [PosController::class, 'checkout'])->name('pos.checkout');
         Route::get('/receipts/{sale}', [ReceiptController::class, 'show'])->name('receipts.show');
         Route::post('/receipts/{sale}/email', [ReceiptController::class, 'email'])->name('receipts.email');
+    });
+
+    Route::middleware('role:OWNER|ADMIN|MANAGER|CASHIER')->group(function () {
+        Route::get('/shifts', [ShiftController::class, 'index'])->name('shifts.index');
+        Route::post('/shifts/open', [ShiftController::class, 'open'])->name('shifts.open');
+        Route::post('/shifts/cash', [ShiftController::class, 'cashMovement'])->name('shifts.cash');
+        Route::post('/shifts/close', [ShiftController::class, 'close'])->name('shifts.close');
     });
 
     Route::middleware('role:OWNER|ADMIN|MANAGER|CASHIER')->group(function () {
@@ -68,11 +76,6 @@ Route::middleware('auth')->group(function () {
         Route::post('/inventory/adjust', [InventoryController::class, 'adjust'])->name('inventory.adjust');
 
         Route::resource('customers', CustomerController::class)->except(['show', 'destroy', 'create', 'store']);
-
-        Route::get('/shifts', [ShiftController::class, 'index'])->name('shifts.index');
-        Route::post('/shifts/open', [ShiftController::class, 'open'])->name('shifts.open');
-        Route::post('/shifts/cash', [ShiftController::class, 'cashMovement'])->name('shifts.cash');
-        Route::post('/shifts/close', [ShiftController::class, 'close'])->name('shifts.close');
 
         Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
         Route::get('/reports/sales', [ReportController::class, 'sales'])->name('reports.sales');

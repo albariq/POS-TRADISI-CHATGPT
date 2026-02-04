@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Customer;
 use App\Models\Product;
 use App\Models\ProductVariant;
+use App\Models\Sale;
 use App\Services\SaleService;
 use App\Services\SalesCalculator;
 use App\Support\OutletContext;
@@ -32,6 +33,16 @@ class PosController extends Controller
 
         $products = $query->orderBy('name')->limit(30)->get();
         $customers = Customer::where('outlet_id', $outletId)->orderBy('name')->limit(20)->get();
+        $holdsQuery = Sale::where('outlet_id', $outletId)
+            ->where('status', 'draft')
+            ->with(['items', 'cashier'])
+            ->latest();
+
+        if (! auth()->user()?->hasAnyRole(['OWNER', 'ADMIN', 'MANAGER'])) {
+            $holdsQuery->where('cashier_id', auth()->id());
+        }
+
+        $holds = $holdsQuery->limit(10)->get();
 
         $cart = $this->getCart();
         $outlet = OutletContext::outlet();
@@ -47,7 +58,7 @@ class PosController extends Controller
 
         $totals = $this->calculator->calculate($cart['items'], $outlet, 0, 0);
 
-        return view('pos.index', compact('products', 'customers', 'cart', 'totals'));
+        return view('pos.index', compact('products', 'customers', 'holds', 'cart', 'totals'));
     }
 
     public function addItem(Request $request)
@@ -159,6 +170,63 @@ class PosController extends Controller
         );
 
         $this->clearCart();
+
+        return redirect()->route('pos.index');
+    }
+
+    public function resumeHold(Request $request, Sale $sale)
+    {
+        $outletId = OutletContext::id();
+
+        if ($sale->outlet_id !== $outletId || $sale->status !== 'draft') {
+            abort(404);
+        }
+
+        if (
+            $sale->cashier_id
+            && $sale->cashier_id !== auth()->id()
+            && ! auth()->user()?->hasAnyRole(['OWNER', 'ADMIN', 'MANAGER'])
+        ) {
+            abort(403);
+        }
+
+        $sale->load('items');
+
+        $items = [];
+        foreach ($sale->items as $item) {
+            $key = $item->product_id.':'.($item->product_variant_id ?? 'base');
+
+            if (isset($items[$key])) {
+                $items[$key]['qty'] += (int) $item->qty;
+                if (empty($items[$key]['note']) && ! empty($item->note)) {
+                    $items[$key]['note'] = $item->note;
+                }
+                continue;
+            }
+
+            $items[$key] = [
+                'key' => $key,
+                'product_id' => $item->product_id,
+                'product_variant_id' => $item->product_variant_id,
+                'name' => $item->name_snapshot,
+                'sku' => $item->sku_snapshot,
+                'qty' => (int) $item->qty,
+                'grams_per_unit' => (float) $item->grams_per_unit,
+                'unit_price' => (float) $item->unit_price,
+                'discount_amount' => (float) $item->discount_amount,
+                'note' => $item->note,
+            ];
+        }
+
+        $this->storeCart([
+            'items' => $items,
+            'transaction_discount' => 0,
+            'coupon_id' => null,
+            'coupon_discount' => 0,
+            'customer_id' => $sale->customer_id,
+        ]);
+
+        $sale->delete();
 
         return redirect()->route('pos.index');
     }

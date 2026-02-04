@@ -121,6 +121,38 @@
                 @endif
                 <button class="w-full bg-emerald-600 text-white rounded-lg py-2 text-sm">{{ __('app.checkout') }}</button>
             </form>
+
+            <div class="mt-4 border-t border-slate-200 pt-4">
+                <div class="flex items-center justify-between mb-2">
+                    <h3 class="text-sm font-semibold">Daftar Hold</h3>
+                    <span class="text-xs text-slate-500">{{ $holds->count() }} transaksi</span>
+                </div>
+                @if ($holds->isEmpty())
+                    <div class="text-xs text-slate-500">Belum ada transaksi hold.</div>
+                @else
+                    <div class="space-y-2">
+                        @foreach ($holds as $hold)
+                            <div class="flex items-center justify-between rounded-lg border border-slate-200 px-3 py-2 text-xs">
+                                <div>
+                                    <div class="font-medium">{{ $hold->receipt_number }}</div>
+                                    <div class="text-slate-500">
+                                        {{ $hold->created_at?->format('d M Y H:i') }}
+                                        · {{ $hold->items->sum('qty') }} item
+                                        · Rp {{ number_format($hold->grand_total, 0, ',', '.') }}
+                                        @if ($hold->cashier)
+                                            · {{ $hold->cashier->name }}
+                                        @endif
+                                    </div>
+                                </div>
+                                <form method="POST" action="{{ route('pos.hold.resume', $hold) }}">
+                                    @csrf
+                                    <button class="rounded border border-slate-300 px-2.5 py-1 text-xs">Lanjutkan</button>
+                                </form>
+                            </div>
+                        @endforeach
+                    </div>
+                @endif
+            </div>
         </div>
     </div>
 </div>
