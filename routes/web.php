@@ -52,6 +52,10 @@ Route::middleware('auth')->group(function () {
         Route::post('/receipts/{sale}/email', [ReceiptController::class, 'email'])->name('receipts.email');
     });
 
+    Route::middleware('role:OWNER|ADMIN|MANAGER|CASHIER')->group(function () {
+        Route::resource('customers', CustomerController::class)->only(['create', 'store']);
+    });
+
     Route::middleware('role:OWNER|ADMIN|MANAGER')->group(function () {
         Route::resource('products', ProductController::class)->except(['destroy']);
         Route::resource('categories', CategoryController::class)->only(['index', 'store', 'update']);
@@ -63,7 +67,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/inventory', [InventoryController::class, 'index'])->name('inventory.index');
         Route::post('/inventory/adjust', [InventoryController::class, 'adjust'])->name('inventory.adjust');
 
-        Route::resource('customers', CustomerController::class)->except(['show', 'destroy']);
+        Route::resource('customers', CustomerController::class)->except(['show', 'destroy', 'create', 'store']);
 
         Route::get('/shifts', [ShiftController::class, 'index'])->name('shifts.index');
         Route::post('/shifts/open', [ShiftController::class, 'open'])->name('shifts.open');

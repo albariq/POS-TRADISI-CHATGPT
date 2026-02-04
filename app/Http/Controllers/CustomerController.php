@@ -27,6 +27,7 @@ class CustomerController extends Controller
             'email' => ['nullable', 'email'],
             'phone' => ['nullable', 'string'],
             'address' => ['nullable', 'string'],
+            'redirect_back' => ['nullable', 'boolean'],
         ]);
 
         $customer = Customer::create([
@@ -38,6 +39,10 @@ class CustomerController extends Controller
         ]);
 
         AuditLogger::log('customer_created', Customer::class, $customer->id, null, $customer->toArray());
+
+        if (! empty($data['redirect_back'])) {
+            return redirect()->back()->with('customer_created_id', $customer->id);
+        }
 
         return redirect()->route('customers.index');
     }

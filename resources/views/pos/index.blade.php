@@ -111,14 +111,55 @@
                     <option value="" selected>Pilih pelanggan (opsional)</option>
                     <option value="">Umum</option>
                     @foreach ($customers as $customer)
-                        <option value="{{ $customer->id }}">{{ $customer->name }}</option>
+                        <option value="{{ $customer->id }}" @selected((int) session('customer_created_id') === (int) $customer->id)>{{ $customer->name }}</option>
                     @endforeach
                 </select>
+                @if (auth()->user()?->hasAnyRole(['OWNER', 'ADMIN', 'MANAGER', 'CASHIER']))
+                    <button type="button" id="open-customer-modal" class="inline-flex items-center text-xs text-slate-600 hover:text-slate-900">
+                        + Tambah pelanggan
+                    </button>
+                @endif
                 <button class="w-full bg-emerald-600 text-white rounded-lg py-2 text-sm">{{ __('app.checkout') }}</button>
             </form>
         </div>
     </div>
 </div>
+
+@if (auth()->user()?->hasAnyRole(['OWNER', 'ADMIN', 'MANAGER', 'CASHIER']))
+    <div id="customer-modal" class="fixed inset-0 z-50 hidden">
+        <div class="absolute inset-0 bg-slate-900/60" data-close-customer-modal></div>
+        <div class="relative mx-auto mt-24 w-full max-w-md rounded-xl bg-white p-5 shadow-lg">
+            <div class="mb-3 flex items-center justify-between">
+                <h3 class="text-sm font-semibold">Tambah Pelanggan</h3>
+                <button type="button" class="text-slate-500 hover:text-slate-700" data-close-customer-modal>✕</button>
+            </div>
+            <form method="POST" action="{{ route('customers.store') }}" class="space-y-3">
+                @csrf
+                <input type="hidden" name="redirect_back" value="1">
+                <div>
+                    <label class="text-xs text-slate-600">Nama</label>
+                    <input name="name" required class="mt-1 w-full border border-slate-300 rounded-lg px-3 py-2 text-sm" placeholder="Nama pelanggan">
+                </div>
+                <div>
+                    <label class="text-xs text-slate-600">Telepon</label>
+                    <input name="phone" class="mt-1 w-full border border-slate-300 rounded-lg px-3 py-2 text-sm" placeholder="08xxxxxxxxxx">
+                </div>
+                <div>
+                    <label class="text-xs text-slate-600">Email</label>
+                    <input type="email" name="email" class="mt-1 w-full border border-slate-300 rounded-lg px-3 py-2 text-sm" placeholder="email@contoh.com">
+                </div>
+                <div>
+                    <label class="text-xs text-slate-600">Alamat</label>
+                    <textarea name="address" rows="2" class="mt-1 w-full border border-slate-300 rounded-lg px-3 py-2 text-sm" placeholder="Alamat (opsional)"></textarea>
+                </div>
+                <div class="flex items-center justify-end gap-2 pt-2">
+                    <button type="button" class="rounded-lg border border-slate-300 px-3 py-2 text-xs" data-close-customer-modal>Batal</button>
+                    <button class="rounded-lg bg-slate-900 px-3 py-2 text-xs text-white">Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+@endif
 
 <script>
     (function () {
@@ -162,4 +203,31 @@
         updateChange();
     })();
 </script>
+@if (auth()->user()?->hasAnyRole(['OWNER', 'ADMIN', 'MANAGER', 'CASHIER']))
+<script>
+    (function () {
+        const openButton = document.getElementById('open-customer-modal');
+        const modal = document.getElementById('customer-modal');
+        if (!openButton || !modal) return;
+
+        function openModal() {
+            modal.classList.remove('hidden');
+        }
+
+        function closeModal() {
+            modal.classList.add('hidden');
+        }
+
+        openButton.addEventListener('click', openModal);
+        modal.querySelectorAll('[data-close-customer-modal]').forEach((el) => {
+            el.addEventListener('click', closeModal);
+        });
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') {
+                closeModal();
+            }
+        });
+    })();
+</script>
+@endif
 @endsection
