@@ -20,7 +20,8 @@ class SaleService
 {
     public function __construct(
         protected SalesCalculator $calculator,
-        protected StockService $stockService
+        protected StockService $stockService,
+        protected TelegramNotificationService $telegramNotificationService
     ) {
     }
 
@@ -54,7 +55,7 @@ class SaleService
 
     protected function storeSale(Outlet $outlet, array $items, ?int $customerId, float $transactionDiscount, ?Coupon $coupon, string $status, array $payments): Sale
     {
-        return DB::transaction(function () use ($outlet, $items, $customerId, $transactionDiscount, $coupon, $status, $payments) {
+        $sale = DB::transaction(function () use ($outlet, $items, $customerId, $transactionDiscount, $coupon, $status, $payments) {
             $couponDiscount = $this->calculateCouponDiscount($coupon, $items, $transactionDiscount, $outlet);
             $totals = $this->calculator->calculate($items, $outlet, $transactionDiscount, $couponDiscount);
 
@@ -151,6 +152,12 @@ class SaleService
 
             return $sale;
         });
+
+        if ($sale->status === 'paid') {
+            $this->telegramNotificationService->sendSalePaid($sale);
+        }
+
+        return $sale;
     }
 
     public function calculateCouponDiscount(?Coupon $coupon, array $items, float $transactionDiscount, Outlet $outlet): float
