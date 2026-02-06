@@ -18,14 +18,11 @@ class InventorySummary extends StatsOverviewWidget
     {
         $summary = $this->summary;
         $rangeLabel = $this->buildRangeLabel($summary['from'] ?? null, $summary['to'] ?? null);
-        $topOut = $this->formatTopOut($summary['top_out'] ?? []);
 
         return [
             Stat::make('Total Keluar', $this->formatGrams($summary['total_out'] ?? 0))
                 ->description($rangeLabel),
             Stat::make('Net (Masuk - Keluar)', $this->formatGrams($summary['net'] ?? 0))
-                ->description($rangeLabel),
-            Stat::make('Top 3 Keluar', $topOut ?: '-')
                 ->description($rangeLabel),
         ];
     }
@@ -44,17 +41,4 @@ class InventorySummary extends StatsOverviewWidget
         return $from->format('d M Y').' s/d '.$to->format('d M Y');
     }
 
-    private function formatTopOut(array $rows): string
-    {
-        if (empty($rows)) {
-            return '';
-        }
-
-        $parts = [];
-        foreach ($rows as $row) {
-            $parts[] = $row['name'].' ('.$this->formatGrams($row['total_out']).')';
-        }
-
-        return implode(', ', $parts);
-    }
 }

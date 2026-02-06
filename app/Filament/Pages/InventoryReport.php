@@ -14,6 +14,7 @@ use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Table;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\DB;
 use UnitEnum;
 use BackedEnum;
 
@@ -55,7 +56,6 @@ class InventoryReport extends Page implements HasTable
             return [
                 'total_out' => 0,
                 'net' => 0,
-                'top_out' => [],
             ];
         }
 
@@ -63,7 +63,7 @@ class InventoryReport extends Page implements HasTable
             ->where('outlet_id', $outletId)
             ->where('type', 'out')
             ->whereBetween('created_at', [$start, $end])
-            ->sum('qty_grams');
+            ->sum(DB::raw('ABS(qty_grams)'));
 
         $totalIn = (float) StockMovement::query()
             ->where('outlet_id', $outletId)
@@ -71,27 +71,9 @@ class InventoryReport extends Page implements HasTable
             ->whereBetween('created_at', [$start, $end])
             ->sum('qty_grams');
 
-        $topOut = StockMovement::query()
-            ->join('products', 'products.id', '=', 'stock_movements.product_id')
-            ->where('stock_movements.outlet_id', $outletId)
-            ->where('stock_movements.type', 'out')
-            ->whereBetween('stock_movements.created_at', [$start, $end])
-            ->groupBy('stock_movements.product_id', 'products.name')
-            ->selectRaw('products.name as product_name')
-            ->selectRaw('SUM(stock_movements.qty_grams) as total_out')
-            ->orderByDesc('total_out')
-            ->limit(3)
-            ->get()
-            ->map(fn ($row) => [
-                'name' => $row->product_name,
-                'total_out' => (float) $row->total_out,
-            ])
-            ->all();
-
         return [
             'total_out' => $totalOut,
             'net' => $totalIn - $totalOut,
-            'top_out' => $topOut,
             'from' => $start,
             'to' => $end,
         ];
@@ -110,7 +92,7 @@ class InventoryReport extends Page implements HasTable
                     ->selectSub(function ($query) use ($start, $end) {
                         $query
                             ->from('stock_movements')
-                            ->selectRaw('COALESCE(SUM(qty_grams), 0)')
+                            ->selectRaw('COALESCE(SUM(ABS(qty_grams)), 0)')
                             ->whereColumn('stock_movements.outlet_id', 'inventory_stocks.outlet_id')
                             ->whereColumn('stock_movements.product_id', 'inventory_stocks.product_id')
                             ->where(function ($query) {
@@ -163,7 +145,7 @@ class InventoryReport extends Page implements HasTable
                     ->sortable(),
                 Tables\Columns\TextColumn::make('total_out_grams')
                     ->label('Keluar (g)')
-                    ->numeric()
+                    ->formatStateUsing(fn ($state) => number_format(abs((float) $state), 0, ',', '.'))
                     ->sortable(),
             ])
             ->filters([
