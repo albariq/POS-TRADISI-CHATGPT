@@ -61,7 +61,7 @@ Route::middleware('auth')->group(function () {
     });
 
     Route::middleware('role:OWNER|ADMIN|MANAGER|CASHIER')->group(function () {
-        Route::resource('customers', CustomerController::class)->only(['create', 'store']);
+        Route::resource('customers', CustomerController::class)->only(['index', 'create', 'store']);
     });
 
     Route::middleware('role:OWNER|ADMIN|MANAGER')->group(function () {
@@ -75,7 +75,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/inventory', [InventoryController::class, 'index'])->name('inventory.index');
         Route::post('/inventory/adjust', [InventoryController::class, 'adjust'])->name('inventory.adjust');
 
-        Route::resource('customers', CustomerController::class)->except(['show', 'destroy', 'create', 'store']);
+        Route::resource('customers', CustomerController::class)->only(['edit', 'update']);
 
         Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
         Route::get('/reports/sales', [ReportController::class, 'sales'])->name('reports.sales');

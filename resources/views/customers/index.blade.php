@@ -24,7 +24,11 @@
                     <td>{{ $customer->phone }}</td>
                     <td>{{ $customer->points_balance }}</td>
                     <td>{{ $customer->is_active ? 'Active' : 'Inactive' }}</td>
-                    <td><a href="{{ route('customers.edit', $customer) }}" class="text-sm text-blue-600">Edit</a></td>
+                    <td>
+                        @role('OWNER|ADMIN|MANAGER')
+                            <a href="{{ route('customers.edit', $customer) }}" class="text-sm text-blue-600">Edit</a>
+                        @endrole
+                    </td>
                 </tr>
             @endforeach
         </tbody>

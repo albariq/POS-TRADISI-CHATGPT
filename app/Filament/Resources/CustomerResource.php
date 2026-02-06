@@ -12,6 +12,7 @@ use Filament\Schemas\Schema;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Auth;
 use UnitEnum;
 use BackedEnum;
 
@@ -22,6 +23,32 @@ class CustomerResource extends Resource
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-user-group';
 
     protected static string|UnitEnum|null $navigationGroup = 'Pelanggan';
+
+    public static function canViewAny(): bool
+    {
+        $user = Auth::user();
+
+        return $user?->hasAnyRole(['OWNER', 'ADMIN', 'MANAGER', 'CASHIER']) ?? false;
+    }
+
+    public static function canCreate(): bool
+    {
+        return static::canViewAny();
+    }
+
+    public static function canEdit($record): bool
+    {
+        $user = Auth::user();
+
+        return $user?->hasAnyRole(['OWNER', 'ADMIN', 'MANAGER']) ?? false;
+    }
+
+    public static function canDelete($record): bool
+    {
+        $user = Auth::user();
+
+        return $user?->hasAnyRole(['OWNER', 'ADMIN', 'MANAGER']) ?? false;
+    }
 
     public static function form(Schema $schema): Schema
     {
@@ -42,9 +69,11 @@ class CustomerResource extends Resource
                     ->columnSpanFull(),
                 Forms\Components\TextInput::make('points_balance')
                     ->numeric()
-                    ->default(0),
+                    ->default(0)
+                    ->disabled(fn () => Auth::user()?->hasRole('CASHIER') ?? false),
                 Forms\Components\Toggle::make('is_active')
-                    ->default(true),
+                    ->default(true)
+                    ->disabled(fn () => Auth::user()?->hasRole('CASHIER') ?? false),
             ])
             ->columns(2);
     }
@@ -66,7 +95,8 @@ class CustomerResource extends Resource
             ->recordActions([
                 Actions\DeleteAction::make()
                     ->label('Hapus')
-                    ->requiresConfirmation(),
+                    ->requiresConfirmation()
+                    ->visible(fn ($record) => static::canDelete($record)),
             ])
             ->bulkActions([]);
     }
@@ -75,6 +105,17 @@ class CustomerResource extends Resource
     {
         return parent::getEloquentQuery()
             ->where('outlet_id', OutletContext::id());
+    }
+
+    public static function mutateFormDataBeforeCreate(array $data): array
+    {
+        $user = Auth::user();
+        if ($user?->hasRole('CASHIER')) {
+            $data['points_balance'] = 0;
+            $data['is_active'] = true;
+        }
+
+        return $data;
     }
 
     public static function getPages(): array

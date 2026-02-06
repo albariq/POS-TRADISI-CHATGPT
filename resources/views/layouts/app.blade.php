@@ -23,10 +23,12 @@
                         @role('CASHIER')
                             <a href="{{ route('pos.index') }}" class="px-2.5 py-1.5 rounded hover:text-slate-900 text-slate-600 hover:bg-slate-100 {{ request()->routeIs('pos.*') ? 'bg-slate-900 text-white hover:bg-slate-900 hover:text-white' : '' }}">{{ __('app.pos') }}</a>
                             <a href="{{ route('shifts.index') }}" class="px-2.5 py-1.5 rounded hover:text-slate-900 text-slate-600 hover:bg-slate-100 {{ request()->routeIs('shifts.*') ? 'bg-slate-900 text-white hover:bg-slate-900 hover:text-white' : '' }}">{{ __('app.shifts') }}</a>
+                            <a href="{{ route('customers.index') }}" class="px-2.5 py-1.5 rounded hover:text-slate-900 text-slate-600 hover:bg-slate-100 {{ request()->routeIs('customers.*') ? 'bg-slate-900 text-white hover:bg-slate-900 hover:text-white' : '' }}">{{ __('app.customers') }}</a>
                         @else
                             <a href="{{ url('/admin') }}" class="px-2.5 py-1.5 rounded hover:text-slate-900 text-slate-600 hover:bg-slate-100">Admin</a>
                             <a href="{{ route('pos.index') }}" class="px-2.5 py-1.5 rounded hover:text-slate-900 text-slate-600 hover:bg-slate-100 {{ request()->routeIs('pos.*') ? 'bg-slate-900 text-white hover:bg-slate-900 hover:text-white' : '' }}">{{ __('app.pos') }}</a>
                             <a href="{{ route('shifts.index') }}" class="px-2.5 py-1.5 rounded hover:text-slate-900 text-slate-600 hover:bg-slate-100 {{ request()->routeIs('shifts.*') ? 'bg-slate-900 text-white hover:bg-slate-900 hover:text-white' : '' }}">{{ __('app.shifts') }}</a>
+                            <a href="{{ route('customers.index') }}" class="px-2.5 py-1.5 rounded hover:text-slate-900 text-slate-600 hover:bg-slate-100 {{ request()->routeIs('customers.*') ? 'bg-slate-900 text-white hover:bg-slate-900 hover:text-white' : '' }}">{{ __('app.customers') }}</a>
                         @endrole
                         <div class="h-5 w-px bg-slate-200 mx-1"></div>
                         <form method="POST" action="{{ route('logout') }}">
