@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Builder;
 
 class TopProductsOutChart extends ChartWidget
 {
-    protected static ?string $heading = 'Top 5 Barang Keluar (30 Hari Terakhir)';
+    protected ?string $heading = 'Top 5 Barang Keluar (30 Hari Terakhir)';
 
     protected function getData(): array
     {

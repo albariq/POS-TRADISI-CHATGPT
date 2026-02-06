@@ -8,7 +8,7 @@ use Filament\Widgets\ChartWidget;
 
 class PeakHoursChart extends ChartWidget
 {
-    protected static ?string $heading = 'Jam Ramai (7 Hari Terakhir)';
+    protected ?string $heading = 'Jam Ramai (7 Hari Terakhir)';
 
     protected function getData(): array
     {
