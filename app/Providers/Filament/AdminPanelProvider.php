@@ -54,6 +54,10 @@ class AdminPanelProvider extends PanelProvider
                 LowStock::class,
                 RecentStockMovements::class,
             ])
+            ->widgetsColumns([
+                'md' => 2,
+                'xl' => 2,
+            ])
             ->navigationItems([
                 NavigationItem::make('POS')
                     ->url(fn () => route('pos.index'))
