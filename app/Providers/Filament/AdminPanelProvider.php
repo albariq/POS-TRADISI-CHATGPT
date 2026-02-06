@@ -16,6 +16,8 @@ use App\Filament\Widgets\LowStock;
 use App\Filament\Widgets\RecentPurchases;
 use App\Filament\Widgets\RecentSales;
 use App\Filament\Widgets\RecentStockMovements;
+use App\Filament\Widgets\PeakHoursChart;
+use App\Filament\Widgets\TopProductsOutChart;
 use Filament\Widgets\AccountWidget;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
@@ -45,6 +47,8 @@ class AdminPanelProvider extends PanelProvider
             ->widgets([
                 AccountWidget::class,
                 DashboardStats::class,
+                PeakHoursChart::class,
+                TopProductsOutChart::class,
                 RecentSales::class,
                 RecentPurchases::class,
                 LowStock::class,
