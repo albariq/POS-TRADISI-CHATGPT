@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Builder;
 class TopProductsOutChart extends ChartWidget
 {
     protected ?string $heading = 'Top 5 Barang Keluar (30 Hari Terakhir)';
+    protected int | string | array $columnSpan = ['md' => 6, 'xl' => 6];
 
     protected function getData(): array
     {
