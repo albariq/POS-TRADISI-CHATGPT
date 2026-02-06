@@ -3,7 +3,6 @@
 namespace App\Filament\Pages;
 
 use App\Models\CashMovement;
-use App\Models\CashMovement;
 use App\Support\OutletContext;
 use BackedEnum;
 use Carbon\Carbon;
