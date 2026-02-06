@@ -98,11 +98,15 @@ Panduan singkat alur kerja kasir sehari-hari.
 1. Cari produk (nama/scan barcode) lalu tambahkan ke cart.
 2. Atur jumlah, varian, atau catatan item jika diperlukan.
 3. Terapkan diskon/kupon jika ada.
-4. Pilih metode pembayaran: **Cash**, **Card**, **QRIS**, **E-Wallet**, atau **Transfer**.
-5. Konfirmasi pembayaran. Sistem akan:
-    - Mengurangi stok sesuai item terjual.
-    - Mencatat transaksi dan pembayaran.
-    - Menyediakan struk 80mm dan link receipt.
+4. Pilih pelanggan jika diperlukan:
+   - Pilih pelanggan dari dropdown, atau
+   - Klik **+ Tambah pelanggan** untuk input cepat (nama/telepon/email/alamat).
+   - Jika dibiarkan kosong, transaksi dianggap pelanggan umum.
+5. Pilih metode pembayaran: **Cash**, **Card**, **QRIS**, **E-Wallet**, atau **Transfer**.
+6. Konfirmasi pembayaran. Sistem akan:
+   - Mengurangi stok sesuai item terjual.
+   - Mencatat transaksi dan pembayaran.
+   - Menyediakan struk 80mm dan link receipt.
 
 ### 4. Hold / Lanjutkan Transaksi
 

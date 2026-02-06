@@ -4,6 +4,7 @@ namespace App\Filament\Resources\LabaRugiEntryResource\Widgets;
 
 use App\Models\LabaRugiEntry;
 use App\Models\Sale;
+use App\Models\SaleItem;
 use App\Support\OutletContext;
 use Filament\Widgets\StatsOverviewWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
@@ -29,10 +30,22 @@ class LabaRugiSummary extends StatsOverviewWidget
             ];
         }
 
-        $pendapatanHarian = Sale::where('outlet_id', $outletId)
+        $harianRow = Sale::where('outlet_id', $outletId)
             ->where('status', 'paid')
             ->whereBetween('created_at', [$todayStart, $todayEnd])
-            ->sum('grand_total');
+            ->selectRaw('SUM(subtotal) as subtotal_sum')
+            ->selectRaw('SUM(discount_total) as discount_sum')
+            ->first();
+
+        $cogsHarian = SaleItem::query()
+            ->join('sales', 'sales.id', '=', 'sale_items.sale_id')
+            ->where('sales.outlet_id', $outletId)
+            ->where('sales.status', 'paid')
+            ->whereBetween('sales.created_at', [$todayStart, $todayEnd])
+            ->sum('sale_items.cogs_total');
+
+        $netSalesHarian = max(0, (float) ($harianRow->subtotal_sum ?? 0) - (float) ($harianRow->discount_sum ?? 0));
+        $pendapatanHarian = $netSalesHarian - (float) $cogsHarian;
 
         $pendapatan = LabaRugiEntry::where('outlet_id', $outletId)
             ->where('jenis', 'pendapatan')
