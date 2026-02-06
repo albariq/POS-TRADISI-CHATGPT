@@ -62,7 +62,11 @@ class CustomerResource extends Resource
                 Tables\Columns\IconColumn::make('is_active')
                     ->boolean(),
             ])
-            ->actions([])
+            ->actions([
+                Tables\Actions\DeleteAction::make()
+                    ->label('Hapus')
+                    ->requiresConfirmation(),
+            ])
             ->bulkActions([]);
     }
 
