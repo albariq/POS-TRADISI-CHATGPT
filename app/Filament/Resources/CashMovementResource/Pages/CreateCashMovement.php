@@ -3,9 +3,12 @@
 namespace App\Filament\Resources\CashMovementResource\Pages;
 
 use App\Filament\Resources\CashMovementResource;
+use App\Models\CashMovement;
 use App\Models\Shift;
 use App\Support\OutletContext;
+use App\Support\AuditLogger;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Filament\Resources\Pages\CreateRecord;
 
 class CreateCashMovement extends CreateRecord
@@ -24,7 +27,12 @@ class CreateCashMovement extends CreateRecord
             ->latest()
             ->value('id');
         if (! $shiftId) {
-            abort(422, 'Tidak ada shift aktif.');
+            Log::warning('cash_movement_without_shift', [
+                'outlet_id' => $outletId,
+                'user_id' => Auth::id(),
+                'type' => $data['type'] ?? null,
+                'amount' => $data['amount'] ?? null,
+            ]);
         }
 
         $data['outlet_id'] = $outletId;
@@ -32,5 +40,23 @@ class CreateCashMovement extends CreateRecord
         $data['created_by'] = Auth::id();
 
         return $data;
+    }
+
+    protected function afterCreate(): void
+    {
+        if (! $this->record instanceof CashMovement) {
+            return;
+        }
+
+        if ($this->record->shift_id === null) {
+            AuditLogger::log(
+                'cash_movement_no_shift',
+                CashMovement::class,
+                $this->record->id,
+                null,
+                $this->record->toArray(),
+                $this->record->outlet_id
+            );
+        }
     }
 }

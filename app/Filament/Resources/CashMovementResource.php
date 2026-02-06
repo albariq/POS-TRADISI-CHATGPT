@@ -16,6 +16,7 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use App\Models\User;
 use UnitEnum;
 
@@ -112,7 +113,12 @@ class CashMovementResource extends Resource
             ->latest()
             ->value('id');
         if (! $data['shift_id']) {
-            abort(422, 'Tidak ada shift aktif.');
+            Log::warning('cash_movement_without_shift', [
+                'outlet_id' => $outletId,
+                'user_id' => Auth::id(),
+                'type' => $data['type'] ?? null,
+                'amount' => $data['amount'] ?? null,
+            ]);
         }
 
         return $data;

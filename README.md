@@ -99,14 +99,14 @@ Panduan singkat alur kerja kasir sehari-hari.
 2. Atur jumlah, varian, atau catatan item jika diperlukan.
 3. Terapkan diskon/kupon jika ada.
 4. Pilih pelanggan jika diperlukan:
-   - Pilih pelanggan dari dropdown, atau
-   - Klik **+ Tambah pelanggan** untuk input cepat (nama/telepon/email/alamat).
-   - Jika dibiarkan kosong, transaksi dianggap pelanggan umum.
+    - Pilih pelanggan dari dropdown, atau
+    - Klik **+ Tambah pelanggan** untuk input cepat (nama/telepon/email/alamat).
+    - Jika dibiarkan kosong, transaksi dianggap pelanggan umum.
 5. Pilih metode pembayaran: **Cash**, **Card**, **QRIS**, **E-Wallet**, atau **Transfer**.
 6. Konfirmasi pembayaran. Sistem akan:
-   - Mengurangi stok sesuai item terjual.
-   - Mencatat transaksi dan pembayaran.
-   - Menyediakan struk 80mm dan link receipt.
+    - Mengurangi stok sesuai item terjual.
+    - Mencatat transaksi dan pembayaran.
+    - Menyediakan struk 80mm dan link receipt.
 
 ### 4. Hold / Lanjutkan Transaksi
 
@@ -154,9 +154,9 @@ Jika memakai Laragon, bisa akses via web server Laragon tanpa `php artisan serve
 ## Commands Server (Catatan Internal)
 
 ```
-/usr/bin/php8.4 /usr/local/bin/composer install --no-dev --prefer-dist --optimize-autoloader
-/usr/bin/php8.4 artisan migrate --force
-/usr/bin/php8.4 artisan optimize:clear
-/usr/bin/php8.4 artisan migrate:fresh --seed
+   /usr/bin/php8.4 /usr/local/bin/composer install --no-dev --prefer-dist --optimize-autoloader
+   /usr/bin/php8.4 artisan migrate --force
+   /usr/bin/php8.4 artisan optimize:clear
+   /usr/bin/php8.4 artisan migrate:fresh --seed
 git pull origin main
 ```
