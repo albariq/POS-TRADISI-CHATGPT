@@ -44,7 +44,7 @@ class SalesReport extends Page implements HasTable
     public function getWidgetData(): array
     {
         return [
-            'summary' => $this->summary,
+            'summary' => $this->getSummaryProperty(),
         ];
     }
 

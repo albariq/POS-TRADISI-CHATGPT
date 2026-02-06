@@ -9,12 +9,14 @@ class SalesSummary extends StatsOverviewWidget
 {
     protected int | string | array $columnSpan = 'full';
 
+    public array $summary = [];
+
     /**
      * @return array<Stat>
      */
     protected function getStats(): array
     {
-        $summary = $this->getSummary();
+        $summary = $this->summary;
         $from = $summary['from'] ?? null;
         $to = $summary['to'] ?? null;
         $rangeLabel = $from && $to ? "{$from} s/d {$to}" : null;
@@ -29,15 +31,6 @@ class SalesSummary extends StatsOverviewWidget
             Stat::make('Grand Total', $this->formatRp($summary['grand_total'] ?? 0))
                 ->description($rangeLabel),
         ];
-    }
-
-    private function getSummary(): array
-    {
-        if (property_exists($this, 'summary') && is_array($this->summary)) {
-            return $this->summary;
-        }
-
-        return [];
     }
 
     private function formatRp(float | int $value): string

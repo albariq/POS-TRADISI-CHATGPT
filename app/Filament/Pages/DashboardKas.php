@@ -3,8 +3,7 @@
 namespace App\Filament\Pages;
 
 use App\Models\CashMovement;
-use App\Models\Payment;
-use App\Models\Shift;
+use App\Models\CashMovement;
 use App\Support\OutletContext;
 use BackedEnum;
 use Carbon\Carbon;
@@ -24,8 +23,6 @@ class DashboardKas extends Page
     public array $summary = [];
     public array $series = [];
     public array $recentMovements = [];
-    public array $recentCashSales = [];
-    public array $shiftSnapshot = [];
 
     public function mount(): void
     {
@@ -39,18 +36,12 @@ class DashboardKas extends Page
             $this->summary = [];
             $this->series = [];
             $this->recentMovements = [];
-            $this->recentCashSales = [];
-            $this->shiftSnapshot = [];
             return;
         }
 
         $todayStart = now()->startOfDay();
         $weekStart = now()->startOfWeek();
         $monthStart = now()->startOfMonth();
-
-        $cashPaymentsQuery = Payment::query()
-            ->where('outlet_id', $outletId)
-            ->where('method', 'cash');
 
         $cashInQuery = CashMovement::query()
             ->where('outlet_id', $outletId)
@@ -60,9 +51,6 @@ class DashboardKas extends Page
             ->where('outlet_id', $outletId)
             ->where('type', 'out');
 
-        $sumPayments = fn (Carbon $from) => (float) $cashPaymentsQuery->clone()
-            ->where('created_at', '>=', $from)
-            ->sum('amount');
         $sumIn = fn (Carbon $from) => (float) $cashInQuery->clone()
             ->where('created_at', '>=', $from)
             ->sum('amount');
@@ -70,11 +58,11 @@ class DashboardKas extends Page
             ->where('created_at', '>=', $from)
             ->sum('amount');
 
-        $todayIn = $sumPayments($todayStart) + $sumIn($todayStart);
+        $todayIn = $sumIn($todayStart);
         $todayOut = $sumOut($todayStart);
-        $weekIn = $sumPayments($weekStart) + $sumIn($weekStart);
+        $weekIn = $sumIn($weekStart);
         $weekOut = $sumOut($weekStart);
-        $monthIn = $sumPayments($monthStart) + $sumIn($monthStart);
+        $monthIn = $sumIn($monthStart);
         $monthOut = $sumOut($monthStart);
 
         $this->summary = [
@@ -93,9 +81,6 @@ class DashboardKas extends Page
         for ($i = 6; $i >= 0; $i--) {
             $date = now()->subDays($i)->startOfDay();
             $next = $date->copy()->addDay();
-            $payments = (float) $cashPaymentsQuery->clone()
-                ->whereBetween('created_at', [$date, $next])
-                ->sum('amount');
             $cashIn = (float) $cashInQuery->clone()
                 ->whereBetween('created_at', [$date, $next])
                 ->sum('amount');
@@ -105,7 +90,7 @@ class DashboardKas extends Page
 
             $days[] = [
                 'label' => $date->format('d M'),
-                'net' => $payments + $cashIn - $cashOut,
+                'net' => $cashIn - $cashOut,
             ];
         }
         $this->series = $days;
@@ -126,39 +111,5 @@ class DashboardKas extends Page
             })
             ->all();
 
-        $this->recentCashSales = Payment::with('sale')
-            ->where('outlet_id', $outletId)
-            ->where('method', 'cash')
-            ->latest()
-            ->limit(8)
-            ->get()
-            ->map(function (Payment $payment) {
-                return [
-                    'amount' => (float) $payment->amount,
-                    'paid_at' => $payment->paid_at ?? $payment->created_at,
-                    'receipt' => $payment->sale?->receipt_number,
-                ];
-            })
-            ->all();
-
-        $shift = Shift::where('outlet_id', $outletId)
-            ->where('status', 'open')
-            ->latest()
-            ->first();
-
-        if ($shift) {
-            $expectedCash = (float) $cashPaymentsQuery->clone()
-                ->whereBetween('created_at', [$shift->opened_at, now()])
-                ->sum('amount');
-            $this->shiftSnapshot = [
-                'opened_at' => $shift->opened_at,
-                'opening_balance' => (float) $shift->opening_balance,
-                'cash_in' => (float) $shift->cash_in,
-                'cash_out' => (float) $shift->cash_out,
-                'expected' => (float) ($shift->opening_balance + $expectedCash + $shift->cash_in - $shift->cash_out),
-            ];
-        } else {
-            $this->shiftSnapshot = [];
-        }
     }
 }

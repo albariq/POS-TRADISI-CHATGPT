@@ -40,38 +40,6 @@
                     </tbody>
                 </table>
             </div>
-
-            <div class="fi-prose">
-                <h3>Saldo Shift Berjalan</h3>
-                @if (empty($this->shiftSnapshot))
-                    <p class="text-gray-400">Tidak ada shift aktif.</p>
-                @else
-                    <table class="text-sm">
-                        <tbody>
-                            <tr>
-                                <td>Buka</td>
-                                <td>{{ $this->shiftSnapshot['opened_at']?->format('d M Y H:i') }}</td>
-                            </tr>
-                            <tr>
-                                <td>Kas Awal</td>
-                                <td>{{ $rupiah($this->shiftSnapshot['opening_balance'] ?? 0) }}</td>
-                            </tr>
-                            <tr>
-                                <td>Kas Masuk</td>
-                                <td>{{ $rupiah($this->shiftSnapshot['cash_in'] ?? 0) }}</td>
-                            </tr>
-                            <tr>
-                                <td>Kas Keluar</td>
-                                <td>{{ $rupiah($this->shiftSnapshot['cash_out'] ?? 0) }}</td>
-                            </tr>
-                            <tr>
-                                <td>Estimasi</td>
-                                <td>{{ $rupiah($this->shiftSnapshot['expected'] ?? 0) }}</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                @endif
-            </div>
         </div>
 
         <div class="mt-6 grid gap-6 xl:grid-cols-2">
@@ -93,32 +61,6 @@
                         @empty
                             <tr>
                                 <td colspan="2">Belum ada data.</td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="fi-prose">
-                <h3>Kas Masuk (Pembayaran Tunai)</h3>
-                <table class="text-sm">
-                    <thead>
-                        <tr>
-                            <th>Receipt</th>
-                            <th>Waktu</th>
-                            <th>Nominal</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse ($this->recentCashSales as $row)
-                            <tr>
-                                <td>{{ $row['receipt'] ?? '-' }}</td>
-                                <td>{{ $row['paid_at']?->format('d M H:i') }}</td>
-                                <td>{{ $rupiah($row['amount']) }}</td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="3">Belum ada data.</td>
                             </tr>
                         @endforelse
                     </tbody>
